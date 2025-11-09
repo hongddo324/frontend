@@ -187,7 +187,6 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                   variant="outline"
                   size="sm"
                   className="h-9 bg-blue-50 border-blue-200 hover:bg-blue-100"
-                  onClick={() => setShowCalendar(!showCalendar)}
                 >
                   <Calendar className="w-4 h-4 mr-2 text-blue-600" />
                   <span className="text-blue-700 font-medium">
@@ -207,6 +206,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                     }
                   }}
                   initialFocus
+                  locale={ko}
                 />
               </PopoverContent>
             </Popover>

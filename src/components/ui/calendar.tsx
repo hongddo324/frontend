@@ -11,11 +11,22 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  locale,
+  formatters,
   ...props
 }: React.ComponentProps<typeof DayPicker>) {
+  // 한글 월 이름을 위한 커스텀 포맷터
+  const defaultFormatters = {
+    formatCaption: (date: Date) => {
+      return `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
+    },
+  };
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      locale={locale}
+      formatters={formatters || defaultFormatters}
       className={cn("p-3", className)}
       classNames={{
         months: "flex flex-col sm:flex-row gap-2",
