@@ -290,15 +290,15 @@ export function Schedule() {
 
       {/* 달력 */}
       <AnimatedSection delay={0.1}>
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-100 shadow-lg">
-          <CardHeader className="pb-2">
+        <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 border-2 border-purple-100 shadow-md">
+          <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-blue-600" />
-              <span className="text-blue-900">공유 달력</span>
+              <Calendar className="w-4 h-4 text-purple-600" />
+              <span className="text-purple-900 font-semibold">공유 달력</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 pt-2">
-            <div className="bg-white rounded-lg p-3 shadow-inner border border-blue-100">
+          <CardContent className="p-4 pt-0">
+            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-sm border border-purple-100/50">
               <CalendarComponent
                 mode="single"
                 selected={selectedDate}
@@ -306,6 +306,7 @@ export function Schedule() {
                 className="rounded-md border-0 w-full"
                 modifiers={modifiers}
                 modifiersStyles={modifiersStyles}
+                locale={ko}
               />
             </div>
           </CardContent>
