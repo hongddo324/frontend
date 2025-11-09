@@ -1,12 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { AnimatedSection } from './AnimatedSection';
-import { Calendar, Target, TrendingDown, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Target, TrendingDown, TrendingUp, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-export function MonthlyComparison() {
+interface MonthlyComparisonProps {
+  onBack?: () => void;
+}
+
+export function MonthlyComparison({ onBack }: MonthlyComparisonProps) {
   // 현재 달과 지난 달 지출 데이터
   const monthlyData = [
     { month: '6월', 식비: 380000, 교통비: 120000, 쇼핑: 250000, 문화생활: 180000, 기타: 150000 },
@@ -97,7 +102,14 @@ export function MonthlyComparison() {
       {/* 헤더 */}
       <AnimatedSection>
         <div className="mb-4">
-          <h1 className="text-xl font-semibold">월별 분석</h1>
+          <div className="flex items-center gap-2 mb-2">
+            {onBack && (
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onBack}>
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            )}
+            <h1 className="text-xl font-semibold">월별 분석</h1>
+          </div>
           <p className="text-sm text-muted-foreground">8월과 9월 지출 패턴을 분석합니다</p>
         </div>
       </AnimatedSection>

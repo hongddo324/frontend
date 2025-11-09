@@ -8,6 +8,7 @@
 - [5. 대시보드 (Dashboard)](#5-대시보드-dashboard)
 - [6. 월별 분석 (Monthly Comparison)](#6-월별-분석-monthly-comparison)
 - [7. 설정 (Settings)](#7-설정-settings)
+- [8. 일정 (Schedule)](#8-일정-schedule)
 
 ---
 
@@ -1561,6 +1562,387 @@ Content-Type: application/json
 
 ---
 
+## 8. 일정 (Schedule)
+
+### API-032: 일정 목록 조회
+
+**API ID**: `API-032`
+
+**Method**: `GET`
+
+**URL**: `/api/schedules`
+
+**Description**: 일정 목록 조회 (특정 날짜 또는 기간)
+
+**Request Headers**:
+```
+Authorization: Bearer {token}
+```
+
+**Query Parameters**:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| startDate | string | No | 시작 날짜 (YYYY-MM-DD) |
+| endDate | string | No | 종료 날짜 (YYYY-MM-DD) |
+| date | string | No | 특정 날짜 (YYYY-MM-DD) |
+
+**Request Body**: 없음
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "data": {
+    "schedules": [
+      {
+        "id": 1,
+        "title": "팀 회의",
+        "description": "월간 팀 회의 및 프로젝트 진행 상황 공유",
+        "date": "2025-11-15",
+        "color": "#3b82f6",
+        "likes": 5,
+        "liked": false,
+        "commentsCount": 3,
+        "author": {
+          "id": 1,
+          "name": "김가계",
+          "avatar": "https://storage.example.com/avatars/user1.jpg"
+        },
+        "createdAt": "2025-11-09T10:00:00Z",
+        "updatedAt": "2025-11-09T10:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### API-033: 일정 생성
+
+**API ID**: `API-033`
+
+**Method**: `POST`
+
+**URL**: `/api/schedules`
+
+**Description**: 새로운 일정 생성
+
+**Request Headers**:
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**Request Body**:
+```json
+{
+  "title": "팀 회의",
+  "description": "월간 팀 회의 및 프로젝트 진행 상황 공유",
+  "date": "2025-11-15",
+  "color": "#3b82f6"
+}
+```
+
+**Request Body Fields**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| title | string | Yes | 일정 제목 (최대 100자) |
+| description | string | No | 일정 설명 (최대 1000자) |
+| date | string | Yes | 일정 날짜 (YYYY-MM-DD) |
+| color | string | No | 표시 색상 (HEX 코드) |
+
+**Response (201 Created)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "팀 회의",
+    "description": "월간 팀 회의 및 프로젝트 진행 상황 공유",
+    "date": "2025-11-15",
+    "color": "#3b82f6",
+    "likes": 0,
+    "liked": false,
+    "commentsCount": 0,
+    "author": {
+      "id": 1,
+      "name": "김가계",
+      "avatar": "https://storage.example.com/avatars/user1.jpg"
+    },
+    "createdAt": "2025-11-09T10:00:00Z"
+  }
+}
+```
+
+---
+
+### API-034: 일정 상세 조회
+
+**API ID**: `API-034`
+
+**Method**: `GET`
+
+**URL**: `/api/schedules/{id}`
+
+**Description**: 특정 일정 상세 정보 조회
+
+**Request Headers**:
+```
+Authorization: Bearer {token}
+```
+
+**Path Parameters**:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | number | Yes | 일정 ID |
+
+**Request Body**: 없음
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "팀 회의",
+    "description": "월간 팀 회의 및 프로젝트 진행 상황 공유",
+    "date": "2025-11-15",
+    "color": "#3b82f6",
+    "likes": 5,
+    "liked": false,
+    "comments": [
+      {
+        "id": 1,
+        "author": "김민수",
+        "authorId": 2,
+        "content": "참석하겠습니다!",
+        "date": "2025-11-09",
+        "avatar": "https://storage.example.com/avatars/user2.jpg",
+        "createdAt": "2025-11-09T11:00:00Z"
+      }
+    ],
+    "author": {
+      "id": 1,
+      "name": "김가계",
+      "avatar": "https://storage.example.com/avatars/user1.jpg"
+    },
+    "createdAt": "2025-11-09T10:00:00Z",
+    "updatedAt": "2025-11-09T10:00:00Z"
+  }
+}
+```
+
+---
+
+### API-035: 일정 수정
+
+**API ID**: `API-035`
+
+**Method**: `PUT`
+
+**URL**: `/api/schedules/{id}`
+
+**Description**: 일정 수정
+
+**Request Headers**:
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**Path Parameters**:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | number | Yes | 일정 ID |
+
+**Request Body**:
+```json
+{
+  "title": "팀 회의 (수정)",
+  "description": "월간 팀 회의 및 프로젝트 진행 상황 공유 (수정)",
+  "date": "2025-11-16",
+  "color": "#10b981"
+}
+```
+
+**Request Body Fields**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| title | string | No | 일정 제목 |
+| description | string | No | 일정 설명 |
+| date | string | No | 일정 날짜 |
+| color | string | No | 표시 색상 |
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "팀 회의 (수정)",
+    "description": "월간 팀 회의 및 프로젝트 진행 상황 공유 (수정)",
+    "date": "2025-11-16",
+    "color": "#10b981",
+    "updatedAt": "2025-11-09T15:00:00Z"
+  }
+}
+```
+
+---
+
+### API-036: 일정 삭제
+
+**API ID**: `API-036`
+
+**Method**: `DELETE`
+
+**URL**: `/api/schedules/{id}`
+
+**Description**: 일정 삭제
+
+**Request Headers**:
+```
+Authorization: Bearer {token}
+```
+
+**Path Parameters**:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | number | Yes | 일정 ID |
+
+**Request Body**: 없음
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "message": "일정이 삭제되었습니다."
+}
+```
+
+---
+
+### API-037: 일정 좋아요 토글
+
+**API ID**: `API-037`
+
+**Method**: `POST`
+
+**URL**: `/api/schedules/{id}/like`
+
+**Description**: 일정 좋아요 추가/취소
+
+**Request Headers**:
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**Path Parameters**:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | number | Yes | 일정 ID |
+
+**Request Body**: 없음
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "data": {
+    "liked": true,
+    "likes": 6
+  }
+}
+```
+
+---
+
+### API-038: 일정 댓글 생성
+
+**API ID**: `API-038`
+
+**Method**: `POST`
+
+**URL**: `/api/schedules/{id}/comments`
+
+**Description**: 일정에 댓글 작성
+
+**Request Headers**:
+```
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+**Path Parameters**:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | number | Yes | 일정 ID |
+
+**Request Body**:
+```json
+{
+  "content": "참석하겠습니다!"
+}
+```
+
+**Request Body Fields**:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| content | string | Yes | 댓글 내용 (최대 500자) |
+
+**Response (201 Created)**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "author": "김가계",
+    "authorId": 1,
+    "content": "참석하겠습니다!",
+    "date": "2025-11-09",
+    "avatar": "https://storage.example.com/avatars/user1.jpg",
+    "createdAt": "2025-11-09T16:00:00Z"
+  }
+}
+```
+
+---
+
+### API-039: 일정 댓글 삭제
+
+**API ID**: `API-039`
+
+**Method**: `DELETE`
+
+**URL**: `/api/schedules/{scheduleId}/comments/{commentId}`
+
+**Description**: 일정 댓글 삭제
+
+**Request Headers**:
+```
+Authorization: Bearer {token}
+```
+
+**Path Parameters**:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| scheduleId | number | Yes | 일정 ID |
+| commentId | number | Yes | 댓글 ID |
+
+**Request Body**: 없음
+
+**Response (200 OK)**:
+```json
+{
+  "success": true,
+  "message": "댓글이 삭제되었습니다."
+}
+```
+
+---
+
 ## 공통 사항
 
 ### 인증 (Authentication)
@@ -1728,10 +2110,18 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 | API-029 | PUT | /api/settings/notifications | 알림 설정 수정 |
 | API-030 | GET | /api/settings/privacy | 개인정보 설정 조회 |
 | API-031 | PUT | /api/settings/privacy | 개인정보 설정 수정 |
+| API-032 | GET | /api/schedules | 일정 목록 조회 |
+| API-033 | POST | /api/schedules | 일정 생성 |
+| API-034 | GET | /api/schedules/{id} | 일정 상세 조회 |
+| API-035 | PUT | /api/schedules/{id} | 일정 수정 |
+| API-036 | DELETE | /api/schedules/{id} | 일정 삭제 |
+| API-037 | POST | /api/schedules/{id}/like | 일정 좋아요 토글 |
+| API-038 | POST | /api/schedules/{id}/comments | 일정 댓글 생성 |
+| API-039 | DELETE | /api/schedules/{scheduleId}/comments/{commentId} | 일정 댓글 삭제 |
 
 ---
 
-**Total APIs**: 31
+**Total APIs**: 39
 
 **Base URL (Development)**: `http://localhost:8000/api/v1`
 

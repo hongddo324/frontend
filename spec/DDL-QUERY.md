@@ -354,6 +354,74 @@ COMMENT ON COLUMN refresh_tokens.expires_at IS '토큰 만료 시간';
 COMMENT ON COLUMN refresh_tokens.is_revoked IS '토큰 폐기 여부 (로그아웃 시)';
 ```
 
+### 14. schedules (일정)
+
+```sql
+CREATE TABLE schedules (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    schedule_date DATE NOT NULL,
+    color VARCHAR(20) DEFAULT '#3b82f6',
+    likes_count INTEGER NOT NULL DEFAULT 0,
+    comments_count INTEGER NOT NULL DEFAULT 0,
+    is_public BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP,
+
+    -- 제약조건
+    CONSTRAINT chk_schedules_likes_count CHECK (likes_count >= 0),
+    CONSTRAINT chk_schedules_comments_count CHECK (comments_count >= 0)
+);
+
+COMMENT ON TABLE schedules IS '공유 일정 정보';
+COMMENT ON COLUMN schedules.user_id IS '작성자 ID (users 테이블 참조)';
+COMMENT ON COLUMN schedules.title IS '일정 제목';
+COMMENT ON COLUMN schedules.description IS '일정 설명';
+COMMENT ON COLUMN schedules.schedule_date IS '일정 날짜';
+COMMENT ON COLUMN schedules.color IS '표시 색상 (HEX 코드)';
+COMMENT ON COLUMN schedules.is_public IS '공개 여부';
+```
+
+### 15. schedule_likes (일정 좋아요)
+
+```sql
+CREATE TABLE schedule_likes (
+    id BIGSERIAL PRIMARY KEY,
+    schedule_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE schedule_likes IS '일정 좋아요';
+COMMENT ON COLUMN schedule_likes.schedule_id IS '일정 ID (schedules 테이블 참조)';
+COMMENT ON COLUMN schedule_likes.user_id IS '사용자 ID (users 테이블 참조)';
+```
+
+### 16. schedule_comments (일정 댓글)
+
+```sql
+CREATE TABLE schedule_comments (
+    id BIGSERIAL PRIMARY KEY,
+    schedule_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    parent_id BIGINT,
+    content TEXT NOT NULL,
+    is_edited BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+COMMENT ON TABLE schedule_comments IS '일정 댓글';
+COMMENT ON COLUMN schedule_comments.schedule_id IS '일정 ID (schedules 테이블 참조)';
+COMMENT ON COLUMN schedule_comments.user_id IS '작성자 ID (users 테이블 참조)';
+COMMENT ON COLUMN schedule_comments.parent_id IS '부모 댓글 ID (대댓글인 경우)';
+COMMENT ON COLUMN schedule_comments.is_edited IS '수정 여부';
+```
+
 ---
 
 ## 인덱스 생성
@@ -566,6 +634,60 @@ CREATE INDEX idx_refresh_tokens_expires
     WHERE is_revoked = FALSE;
 ```
 
+### schedules 테이블 인덱스
+
+```sql
+-- 사용자별 일정 날짜 내림차순
+CREATE INDEX idx_schedules_user_date_desc
+    ON schedules (user_id, schedule_date DESC);
+
+-- 날짜별 일정 조회
+CREATE INDEX idx_schedules_date
+    ON schedules (schedule_date);
+
+-- 생성일 인덱스
+CREATE INDEX idx_schedules_created_at
+    ON schedules (created_at);
+
+-- 공개 일정만 조회
+CREATE INDEX idx_schedules_public
+    ON schedules (schedule_date DESC)
+    WHERE is_public = TRUE AND deleted_at IS NULL;
+```
+
+### schedule_likes 테이블 인덱스
+
+```sql
+-- 일정별 사용자별 좋아요 유니크 제약 (중복 좋아요 방지)
+CREATE UNIQUE INDEX idx_schedule_likes_schedule_user
+    ON schedule_likes (schedule_id, user_id);
+
+-- 사용자별 좋아요 목록 조회
+CREATE INDEX idx_schedule_likes_user_id
+    ON schedule_likes (user_id, created_at DESC);
+```
+
+### schedule_comments 테이블 인덱스
+
+```sql
+-- 일정별 댓글 생성일 순
+CREATE INDEX idx_schedule_comments_schedule_created
+    ON schedule_comments (schedule_id, created_at);
+
+-- 사용자별 댓글 조회
+CREATE INDEX idx_schedule_comments_user_id
+    ON schedule_comments (user_id);
+
+-- 부모 댓글 ID (대댓글 조회)
+CREATE INDEX idx_schedule_comments_parent_id
+    ON schedule_comments (parent_id);
+
+-- 삭제되지 않은 댓글만 조회
+CREATE INDEX idx_schedule_comments_not_deleted
+    ON schedule_comments (schedule_id, created_at)
+    WHERE deleted_at IS NULL;
+```
+
 ---
 
 ## 외래 키 생성
@@ -654,6 +776,33 @@ ALTER TABLE notifications
 ALTER TABLE refresh_tokens
     ADD CONSTRAINT fk_refresh_tokens_user_id
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+
+-- schedules 외래 키
+ALTER TABLE schedules
+    ADD CONSTRAINT fk_schedules_user_id
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+
+-- schedule_likes 외래 키
+ALTER TABLE schedule_likes
+    ADD CONSTRAINT fk_schedule_likes_schedule_id
+    FOREIGN KEY (schedule_id) REFERENCES schedules(id) ON DELETE CASCADE;
+
+ALTER TABLE schedule_likes
+    ADD CONSTRAINT fk_schedule_likes_user_id
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+
+-- schedule_comments 외래 키
+ALTER TABLE schedule_comments
+    ADD CONSTRAINT fk_schedule_comments_schedule_id
+    FOREIGN KEY (schedule_id) REFERENCES schedules(id) ON DELETE CASCADE;
+
+ALTER TABLE schedule_comments
+    ADD CONSTRAINT fk_schedule_comments_user_id
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+
+ALTER TABLE schedule_comments
+    ADD CONSTRAINT fk_schedule_comments_parent_id
+    FOREIGN KEY (parent_id) REFERENCES schedule_comments(id) ON DELETE CASCADE;
 ```
 
 ---
@@ -721,6 +870,18 @@ CREATE TRIGGER trigger_daily_life_entries_updated_at
 -- daily_life_comments 테이블 트리거
 CREATE TRIGGER trigger_daily_life_comments_updated_at
     BEFORE UPDATE ON daily_life_comments
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- schedules 테이블 트리거
+CREATE TRIGGER trigger_schedules_updated_at
+    BEFORE UPDATE ON schedules
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- schedule_comments 테이블 트리거
+CREATE TRIGGER trigger_schedule_comments_updated_at
+    BEFORE UPDATE ON schedule_comments
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 ```
@@ -801,6 +962,84 @@ CREATE TRIGGER trigger_update_comments_on_delete
     AFTER UPDATE ON daily_life_comments
     FOR EACH ROW
     EXECUTE FUNCTION update_comments_count_on_delete();
+```
+
+### 5. 일정 좋아요/댓글 카운터 함수
+
+```sql
+-- 일정 좋아요 추가 시 카운터 증가
+CREATE OR REPLACE FUNCTION increment_schedule_likes_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE schedules
+    SET likes_count = likes_count + 1
+    WHERE id = NEW.schedule_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 일정 좋아요 삭제 시 카운터 감소
+CREATE OR REPLACE FUNCTION decrement_schedule_likes_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE schedules
+    SET likes_count = likes_count - 1
+    WHERE id = OLD.schedule_id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 일정 댓글 추가 시 카운터 증가
+CREATE OR REPLACE FUNCTION increment_schedule_comments_count()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.deleted_at IS NULL THEN
+        UPDATE schedules
+        SET comments_count = comments_count + 1
+        WHERE id = NEW.schedule_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 일정 댓글 삭제 시 카운터 감소 (소프트 삭제)
+CREATE OR REPLACE FUNCTION update_schedule_comments_count_on_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.deleted_at IS NULL AND NEW.deleted_at IS NOT NULL THEN
+        UPDATE schedules
+        SET comments_count = comments_count - 1
+        WHERE id = NEW.schedule_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### 6. 일정 카운터 트리거 생성
+
+```sql
+-- 일정 좋아요 트리거
+CREATE TRIGGER trigger_increment_schedule_likes
+    AFTER INSERT ON schedule_likes
+    FOR EACH ROW
+    EXECUTE FUNCTION increment_schedule_likes_count();
+
+CREATE TRIGGER trigger_decrement_schedule_likes
+    AFTER DELETE ON schedule_likes
+    FOR EACH ROW
+    EXECUTE FUNCTION decrement_schedule_likes_count();
+
+-- 일정 댓글 트리거
+CREATE TRIGGER trigger_increment_schedule_comments
+    AFTER INSERT ON schedule_comments
+    FOR EACH ROW
+    EXECUTE FUNCTION increment_schedule_comments_count();
+
+CREATE TRIGGER trigger_update_schedule_comments_on_delete
+    AFTER UPDATE ON schedule_comments
+    FOR EACH ROW
+    EXECUTE FUNCTION update_schedule_comments_count_on_delete();
 ```
 
 ---

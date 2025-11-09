@@ -35,12 +35,12 @@
 │     users       │
 └────────┬────────┘
          │
-         ├──────────────────────────────────────┐
-         │                                      │
-         │                                      │
-┌────────▼────────┐                   ┌────────▼────────────┐
-│ user_settings   │                   │   notifications     │
-└─────────────────┘                   └─────────────────────┘
+         ├────────────────────────────────────────────────┐
+         │                                                │
+         │                                                │
+┌────────▼────────┐                   ┌──────────────────▼───────┐
+│ user_settings   │                   │   notifications          │
+└─────────────────┘                   └──────────────────────────┘
          │
          │
 ┌────────▼────────────────┐           ┌──────────────────────┐
@@ -58,10 +58,17 @@
 │ daily_life_tags   │               └───────────────┘
 │ (Many-to-Many)    │               ┌───────────────┐
 └───────────────────┘               │    budgets    │
-                                    └───────────────┘
-                                    ┌───────────────┐
-                                    │     cards     │
-                                    └───────────────┘
+         │                          └───────────────┘
+         │                          ┌───────────────┐
+┌────────▼────────────┐             │     cards     │
+│    schedules        │             └───────────────┘
+└────────┬────────────┘
+         │
+         ├──────────┬──────────┐
+         │          │          │
+┌────────▼──┐  ┌───▼──────┐ ┌─▼───────────┐
+│sch_likes │  │sch_comments│ (연결 users)
+└───────────┘  └────────────┘
 ```
 
 ---
@@ -417,6 +424,85 @@
 
 ---
 
+### 14. schedules (일정)
+
+**설명**: 공유 일정 정보
+
+| 컬럼명 | 데이터 타입 | NULL | 기본값 | 설명 |
+|--------|-------------|------|--------|------|
+| id | BIGSERIAL | NO | - | 일정 ID (PK) |
+| user_id | BIGINT | NO | - | 작성자 ID (FK) |
+| title | VARCHAR(100) | NO | - | 일정 제목 |
+| description | TEXT | YES | NULL | 일정 설명 |
+| schedule_date | DATE | NO | - | 일정 날짜 |
+| color | VARCHAR(20) | YES | '#3b82f6' | 표시 색상 (HEX) |
+| likes_count | INTEGER | NO | 0 | 좋아요 수 |
+| comments_count | INTEGER | NO | 0 | 댓글 수 |
+| is_public | BOOLEAN | NO | TRUE | 공개 여부 |
+| created_at | TIMESTAMP | NO | CURRENT_TIMESTAMP | 생성 시간 |
+| updated_at | TIMESTAMP | NO | CURRENT_TIMESTAMP | 수정 시간 |
+| deleted_at | TIMESTAMP | YES | NULL | 삭제 시간 (소프트 삭제) |
+
+**인덱스**:
+- PRIMARY KEY: `id`
+- INDEX: `user_id`, `schedule_date` DESC
+- INDEX: `schedule_date`
+- INDEX: `created_at`
+- FOREIGN KEY: `user_id` REFERENCES `users(id)` ON DELETE CASCADE
+
+**제약조건**:
+- CHECK: `likes_count >= 0`
+- CHECK: `comments_count >= 0`
+
+---
+
+### 15. schedule_likes (일정 좋아요)
+
+**설명**: 일정 좋아요
+
+| 컬럼명 | 데이터 타입 | NULL | 기본값 | 설명 |
+|--------|-------------|------|--------|------|
+| id | BIGSERIAL | NO | - | ID (PK) |
+| schedule_id | BIGINT | NO | - | 일정 ID (FK) |
+| user_id | BIGINT | NO | - | 사용자 ID (FK) |
+| created_at | TIMESTAMP | NO | CURRENT_TIMESTAMP | 생성 시간 |
+
+**인덱스**:
+- PRIMARY KEY: `id`
+- UNIQUE INDEX: `schedule_id`, `user_id`
+- INDEX: `user_id`
+- FOREIGN KEY: `schedule_id` REFERENCES `schedules(id)` ON DELETE CASCADE
+- FOREIGN KEY: `user_id` REFERENCES `users(id)` ON DELETE CASCADE
+
+---
+
+### 16. schedule_comments (일정 댓글)
+
+**설명**: 일정 댓글
+
+| 컬럼명 | 데이터 타입 | NULL | 기본값 | 설명 |
+|--------|-------------|------|--------|------|
+| id | BIGSERIAL | NO | - | 댓글 ID (PK) |
+| schedule_id | BIGINT | NO | - | 일정 ID (FK) |
+| user_id | BIGINT | NO | - | 작성자 ID (FK) |
+| parent_id | BIGINT | YES | NULL | 부모 댓글 ID (대댓글) |
+| content | TEXT | NO | - | 댓글 내용 |
+| is_edited | BOOLEAN | NO | FALSE | 수정 여부 |
+| created_at | TIMESTAMP | NO | CURRENT_TIMESTAMP | 생성 시간 |
+| updated_at | TIMESTAMP | NO | CURRENT_TIMESTAMP | 수정 시간 |
+| deleted_at | TIMESTAMP | YES | NULL | 삭제 시간 |
+
+**인덱스**:
+- PRIMARY KEY: `id`
+- INDEX: `schedule_id`, `created_at`
+- INDEX: `user_id`
+- INDEX: `parent_id`
+- FOREIGN KEY: `schedule_id` REFERENCES `schedules(id)` ON DELETE CASCADE
+- FOREIGN KEY: `user_id` REFERENCES `users(id)` ON DELETE CASCADE
+- FOREIGN KEY: `parent_id` REFERENCES `schedule_comments(id)` ON DELETE CASCADE
+
+---
+
 ## 인덱스 전략
 
 ### 1. 단일 컬럼 인덱스
@@ -631,8 +717,11 @@ CREATE POLICY transactions_user_policy ON transactions
 | 11 | daily_life_comments | 일상 댓글 | 10M |
 | 12 | notifications | 알림 | 50M |
 | 13 | refresh_tokens | 리프레시 토큰 | 500K |
+| 14 | schedules | 일정 | 3M |
+| 15 | schedule_likes | 일정 좋아요 | 10M |
+| 16 | schedule_comments | 일정 댓글 | 5M |
 
-**총 13개 테이블**
+**총 16개 테이블**
 
 ---
 
