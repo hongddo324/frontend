@@ -290,35 +290,43 @@ export function Schedule() {
 
       {/* 달력 */}
       <AnimatedSection delay={0.1}>
-        <Card>
-          <CardContent className="p-4">
-            <CalendarComponent
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              className="rounded-md border-0 w-full"
-              modifiers={modifiers}
-              modifiersStyles={modifiersStyles}
-            />
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-100 shadow-lg">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-blue-600" />
+              <span className="text-blue-900">공유 달력</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-2">
+            <div className="bg-white rounded-lg p-3 shadow-inner border border-blue-100">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="rounded-md border-0 w-full"
+                modifiers={modifiers}
+                modifiersStyles={modifiersStyles}
+              />
+            </div>
           </CardContent>
         </Card>
       </AnimatedSection>
 
       {/* 선택된 날짜의 일정 목록 */}
       <AnimatedSection delay={0.2}>
-        <div>
-          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border-2 border-green-100 shadow-sm">
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2 text-green-900">
+            <Calendar className="w-5 h-5 text-green-600" />
             {selectedDate ? format(selectedDate, 'M월 d일 일정', { locale: ko }) : '날짜를 선택하세요'}
-            <Badge variant="secondary" className="ml-auto">
+            <Badge variant="secondary" className="ml-auto bg-green-600 text-white hover:bg-green-700">
               {eventsForSelectedDate.length}개
             </Badge>
           </h2>
 
           {eventsForSelectedDate.length === 0 ? (
-            <Card className="p-8">
+            <Card className="p-8 bg-white border-green-100">
               <div className="text-center text-muted-foreground">
-                <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <Calendar className="w-12 h-12 mx-auto mb-2 opacity-50 text-green-300" />
                 <p>이 날짜에 일정이 없습니다</p>
               </div>
             </Card>
@@ -327,7 +335,7 @@ export function Schedule() {
               {eventsForSelectedDate.map((event) => (
                 <Card
                   key={event.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  className="cursor-pointer hover:shadow-lg transition-all hover:scale-[1.02] bg-white border-2 border-transparent hover:border-green-200"
                   onClick={() => {
                     setSelectedEvent(event);
                     setIsEventDialogOpen(true);
@@ -335,24 +343,24 @@ export function Schedule() {
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className={`w-1 h-16 rounded-full ${event.color}`} />
+                      <div className={`w-1.5 h-16 rounded-full ${event.color} shadow-md`} />
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-sm mb-1">{event.title}</h3>
                         <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                           {event.description}
                         </p>
                         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Heart className={`w-3 h-3 ${event.liked ? 'fill-red-500 text-red-500' : ''}`} />
-                            <span>{event.likes}</span>
+                          <div className="flex items-center gap-1 bg-red-50 px-2 py-1 rounded-full">
+                            <Heart className={`w-3 h-3 ${event.liked ? 'fill-red-500 text-red-500' : 'text-red-400'}`} />
+                            <span className="font-medium text-red-600">{event.likes}</span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <MessageCircle className="w-3 h-3" />
-                            <span>{event.comments.length}</span>
+                          <div className="flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-full">
+                            <MessageCircle className="w-3 h-3 text-blue-400" />
+                            <span className="font-medium text-blue-600">{event.comments.length}</span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            <span>{event.author.name}</span>
+                          <div className="flex items-center gap-1 bg-purple-50 px-2 py-1 rounded-full">
+                            <Users className="w-3 h-3 text-purple-400" />
+                            <span className="font-medium text-purple-600">{event.author.name}</span>
                           </div>
                         </div>
                       </div>

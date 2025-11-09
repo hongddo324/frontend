@@ -69,10 +69,10 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* 프로필 섹션 */}
       <AnimatedSection delay={0.1}>
-        <Card>
+        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-100 shadow-md">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <User className="w-4 h-4" />
+            <CardTitle className="text-base flex items-center gap-2 text-blue-900">
+              <User className="w-4 h-4 text-blue-600" />
               프로필
             </CardTitle>
           </CardHeader>
@@ -141,10 +141,10 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* 알림 설정 */}
       <AnimatedSection delay={0.2}>
-        <Card>
+        <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-yellow-100 shadow-md">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Bell className="w-4 h-4" />
+            <CardTitle className="text-base flex items-center gap-2 text-yellow-900">
+              <Bell className="w-4 h-4 text-yellow-600" />
               알림 설정
             </CardTitle>
           </CardHeader>
@@ -227,10 +227,10 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* 보안 및 개인정보 */}
       <AnimatedSection delay={0.3}>
-        <Card>
+        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-100 shadow-md">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Shield className="w-4 h-4" />
+            <CardTitle className="text-base flex items-center gap-2 text-green-900">
+              <Shield className="w-4 h-4 text-green-600" />
               보안 및 개인정보
             </CardTitle>
           </CardHeader>
@@ -296,10 +296,10 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* 기타 설정 */}
       <AnimatedSection delay={0.4}>
-        <Card>
+        <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-2 border-purple-100 shadow-md">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Palette className="w-4 h-4" />
+            <CardTitle className="text-base flex items-center gap-2 text-purple-900">
+              <Palette className="w-4 h-4 text-purple-600" />
               앱 설정
             </CardTitle>
           </CardHeader>
@@ -346,10 +346,10 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* 지원 */}
       <AnimatedSection delay={0.5}>
-        <Card>
+        <Card className="bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-100 shadow-md">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <HelpCircle className="w-4 h-4" />
+            <CardTitle className="text-base flex items-center gap-2 text-pink-900">
+              <HelpCircle className="w-4 h-4 text-pink-600" />
               지원
             </CardTitle>
           </CardHeader>
@@ -396,18 +396,22 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* 로그아웃 */}
       <AnimatedSection delay={0.6}>
-        <Button
-          variant="destructive"
-          className="w-full flex items-center gap-2"
-          onClick={() => {
-            if (confirm('로그아웃하시겠습니까?')) {
-              onLogout();
-            }
-          }}
-        >
-          <LogOut className="w-4 h-4" />
-          로그아웃
-        </Button>
+        <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 shadow-md">
+          <CardContent className="p-4">
+            <Button
+              variant="destructive"
+              className="w-full h-12 flex items-center justify-center gap-2 text-base font-semibold shadow-lg hover:shadow-xl transition-all bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                if (confirm('로그아웃하시겠습니까?')) {
+                  onLogout();
+                }
+              }}
+            >
+              <LogOut className="w-5 h-5" />
+              로그아웃
+            </Button>
+          </CardContent>
+        </Card>
       </AnimatedSection>
 
       <div className="h-4"></div>

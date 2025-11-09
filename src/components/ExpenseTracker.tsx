@@ -183,19 +183,28 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
             </div>
             <Popover open={showCalendar} onOpenChange={setShowCalendar}>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  {selectedDate ? format(selectedDate, 'M월 d일', { locale: ko }) : '날짜 선택'}
-                  <ChevronDown className="w-3 h-3 ml-1" />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 bg-blue-50 border-blue-200 hover:bg-blue-100"
+                  onClick={() => setShowCalendar(!showCalendar)}
+                >
+                  <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                  <span className="text-blue-700 font-medium">
+                    {selectedDate ? format(selectedDate, 'M월 d일', { locale: ko }) : '날짜 선택'}
+                  </span>
+                  <ChevronDown className="w-3 h-3 ml-1 text-blue-600" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
+              <PopoverContent className="w-auto p-0 shadow-lg border-2" align="end">
                 <CalendarComponent
                   mode="single"
                   selected={selectedDate}
                   onSelect={(date) => {
-                    setSelectedDate(date);
-                    setShowCalendar(false);
+                    if (date) {
+                      setSelectedDate(date);
+                      setShowCalendar(false);
+                    }
                   }}
                   initialFocus
                 />
@@ -205,11 +214,11 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
           {/* 분석 버튼 */}
           <Button
             variant="outline"
-            className="w-full"
+            className="w-full bg-purple-50 border-purple-200 hover:bg-purple-100"
             onClick={onShowAnalysis}
           >
-            <BarChart3 className="w-4 h-4 mr-2" />
-            월별 분석 보기
+            <BarChart3 className="w-4 h-4 mr-2 text-purple-600" />
+            <span className="text-purple-700 font-medium">월별 분석 보기</span>
           </Button>
         </div>
       </AnimatedSection>
