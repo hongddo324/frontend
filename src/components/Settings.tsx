@@ -23,7 +23,11 @@ import {
   Smartphone
 } from 'lucide-react';
 
-export function Settings() {
+interface SettingsProps {
+  onLogout: () => void;
+}
+
+export function Settings({ onLogout }: SettingsProps) {
   const [profile, setProfile] = useState({
     name: '김가계',
     email: 'budget@example.com',
@@ -392,7 +396,15 @@ export function Settings() {
 
       {/* 로그아웃 */}
       <AnimatedSection delay={0.6}>
-        <Button variant="destructive" className="w-full flex items-center gap-2">
+        <Button
+          variant="destructive"
+          className="w-full flex items-center gap-2"
+          onClick={() => {
+            if (confirm('로그아웃하시겠습니까?')) {
+              onLogout();
+            }
+          }}
+        >
           <LogOut className="w-4 h-4" />
           로그아웃
         </Button>

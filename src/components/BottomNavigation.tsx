@@ -1,8 +1,8 @@
-import { 
-  Home, 
-  Wallet, 
-  BookOpen, 
-  TrendingUp, 
+import {
+  Home,
+  Wallet,
+  BookOpen,
+  Calendar,
   Settings
 } from 'lucide-react';
 import { cn } from './ui/utils';
@@ -16,7 +16,7 @@ const menuItems = [
   { id: 'dashboard', label: '홈', icon: Home },
   { id: 'expenses', label: '가계부', icon: Wallet },
   { id: 'daily', label: '일상', icon: BookOpen },
-  { id: 'comparison', label: '분석', icon: TrendingUp },
+  { id: 'schedule', label: '일정', icon: Calendar },
   { id: 'settings', label: '설정', icon: Settings },
 ];
 

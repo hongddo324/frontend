@@ -10,7 +10,7 @@ import { Calendar as CalendarComponent } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { AnimatedSection } from './AnimatedSection';
 import { Progress } from './ui/progress';
-import { Plus, Search, TrendingUp, TrendingDown, Calendar, ChevronDown, CreditCard, AlertTriangle, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, TrendingUp, TrendingDown, Calendar, ChevronDown, CreditCard, AlertTriangle, Edit2, Trash2, BarChart3 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from './ui/utils';
@@ -28,7 +28,11 @@ interface Transaction {
 
 const CHART_COLORS = ['#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#f59e0b'];
 
-export function ExpenseTracker() {
+interface ExpenseTrackerProps {
+  onShowAnalysis: () => void;
+}
+
+export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([
     { id: 1, description: '급여', amount: 2800000, category: '급여', date: '2025-08-01', type: 'income' },
     { id: 2, description: '스타벅스 커피', amount: 6500, category: '식비', date: '2025-08-14', type: 'expense', isAutoClassified: true },
@@ -171,31 +175,42 @@ export function ExpenseTracker() {
     <div className="p-4 space-y-4 overflow-auto h-full">
       {/* 헤더 */}
       <AnimatedSection>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-xl font-semibold">가계부</h1>
-            <p className="text-sm text-muted-foreground">수입과 지출을 관리하세요</p>
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h1 className="text-xl font-semibold">가계부</h1>
+              <p className="text-sm text-muted-foreground">수입과 지출을 관리하세요</p>
+            </div>
+            <Popover open={showCalendar} onOpenChange={setShowCalendar}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="h-9">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  {selectedDate ? format(selectedDate, 'M월 d일', { locale: ko }) : '날짜 선택'}
+                  <ChevronDown className="w-3 h-3 ml-1" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    setSelectedDate(date);
+                    setShowCalendar(false);
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
-          <Popover open={showCalendar} onOpenChange={setShowCalendar}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9">
-                <Calendar className="w-4 h-4 mr-2" />
-                {selectedDate ? format(selectedDate, 'M월 d일', { locale: ko }) : '날짜 선택'}
-                <ChevronDown className="w-3 h-3 ml-1" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <CalendarComponent
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => {
-                  setSelectedDate(date);
-                  setShowCalendar(false);
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+          {/* 분석 버튼 */}
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={onShowAnalysis}
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            월별 분석 보기
+          </Button>
         </div>
       </AnimatedSection>
 
