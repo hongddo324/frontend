@@ -106,6 +106,8 @@ export function DailyLife() {
   const [commentText, setCommentText] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'title' | 'tag' | 'date'>('title');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -229,19 +231,34 @@ export function DailyLife() {
 
   // 검색 필터링
   const filteredEntries = entries.filter(entry => {
-    if (!searchTerm) return true;
+    if (searchType === 'date') {
+      // 날짜 범위 검색
+      if (!startDate && !endDate) return true;
 
-    const lowerSearchTerm = searchTerm.toLowerCase();
+      const entryDate = new Date(entry.date);
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
 
-    switch (searchType) {
-      case 'title':
-        return entry.title.toLowerCase().includes(lowerSearchTerm);
-      case 'tag':
-        return entry.tags.some(tag => tag.toLowerCase().includes(lowerSearchTerm));
-      case 'date':
-        return entry.date.includes(searchTerm);
-      default:
-        return true;
+      if (start && end) {
+        return entryDate >= start && entryDate <= end;
+      } else if (start) {
+        return entryDate >= start;
+      } else if (end) {
+        return entryDate <= end;
+      }
+      return true;
+    } else {
+      if (!searchTerm) return true;
+      const lowerSearchTerm = searchTerm.toLowerCase();
+
+      switch (searchType) {
+        case 'title':
+          return entry.title.toLowerCase().includes(lowerSearchTerm);
+        case 'tag':
+          return entry.tags.some(tag => tag.toLowerCase().includes(lowerSearchTerm));
+        default:
+          return true;
+      }
     }
   });
 
@@ -343,16 +360,16 @@ export function DailyLife() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="mood">기분</Label>
-                  <Select 
-                    value={formData.mood} 
-                    onValueChange={(value: 'good' | 'neutral' | 'bad') => 
+                  <Select
+                    value={formData.mood}
+                    onValueChange={(value: 'good' | 'neutral' | 'bad') =>
                       setFormData({...formData, mood: value})
                     }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-gray-800">
                       <SelectItem value="good">😊 좋음</SelectItem>
                       <SelectItem value="neutral">😐 보통</SelectItem>
                       <SelectItem value="bad">😞 안좋음</SelectItem>
@@ -362,14 +379,14 @@ export function DailyLife() {
 
                 <div className="space-y-2">
                   <Label htmlFor="category">카테고리</Label>
-                  <Select 
-                    value={formData.category} 
+                  <Select
+                    value={formData.category}
                     onValueChange={(value) => setFormData({...formData, category: value})}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="선택" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-gray-800">
                       {categories.map((category) => (
                         <SelectItem key={category} value={category}>
                           {category}
@@ -436,26 +453,45 @@ export function DailyLife() {
                 <SelectTrigger className="w-24">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-gray-800">
                   <SelectItem value="title">제목</SelectItem>
                   <SelectItem value="tag">태그</SelectItem>
                   <SelectItem value="date">날짜</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="relative flex-1">
-                <Input
-                  placeholder={
-                    searchType === 'title' ? '제목 검색...' :
-                    searchType === 'tag' ? '태그 검색...' :
-                    '날짜 검색 (예: 2025-08-14)'
-                  }
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-              </div>
+              {searchType === 'date' ? (
+                <div className="flex-1 flex gap-2">
+                  <Input
+                    type="date"
+                    placeholder="시작일"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="flex-1"
+                  />
+                  <span className="flex items-center text-sm text-muted-foreground">~</span>
+                  <Input
+                    type="date"
+                    placeholder="종료일"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
+              ) : (
+                <div className="relative flex-1">
+                  <Input
+                    placeholder={
+                      searchType === 'title' ? '제목 검색...' :
+                      '태그 검색...'
+                    }
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+              )}
             </div>
-            {searchTerm && (
+            {(searchTerm || startDate || endDate) && (
               <p className="text-xs text-muted-foreground">
                 {filteredEntries.length}개의 결과를 찾았습니다.
               </p>
