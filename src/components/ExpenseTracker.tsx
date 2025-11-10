@@ -23,6 +23,7 @@ interface Transaction {
   category: string;
   date: string;
   type: 'income' | 'expense';
+  paymentMethod?: string;
   isAutoClassified?: boolean;
 }
 
@@ -94,11 +95,17 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
     category: '',
     type: 'expense' as 'income' | 'expense',
     date: new Date().toISOString().split('T')[0],
+    paymentMethod: '',
   });
 
   const categories = {
     expense: ['식비', '교통비', '쇼핑', '문화생활', '의료비', '공과금', '보험', '기타'],
     income: ['급여', '부업', '투자수익', '기타수입']
+  };
+
+  const paymentMethods = {
+    expense: ['현금', '부산카드', '롯데카드', '부산은행', '삼성카드', '신한카드', '현대카드', '국민카드', '기타'],
+    income: ['계좌입금', '현금', '기타']
   };
 
   const autoClassifyTransaction = (description: string): { category: string; isAutoClassified: boolean } => {
@@ -124,8 +131,8 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
     
     if (editingTransaction) {
       // 수정 모드
-      setTransactions(transactions.map(t => 
-        t.id === editingTransaction.id 
+      setTransactions(transactions.map(t =>
+        t.id === editingTransaction.id
           ? {
               ...t,
               description: formData.description,
@@ -133,13 +140,14 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
               category: formData.category || t.category,
               type: formData.type,
               date: formData.date,
+              paymentMethod: formData.paymentMethod,
             }
           : t
       ));
       setEditingTransaction(null);
     } else {
       // 새로 추가
-      const { category: autoCategory, isAutoClassified } = formData.category 
+      const { category: autoCategory, isAutoClassified } = formData.category
         ? { category: formData.category, isAutoClassified: false }
         : autoClassifyTransaction(formData.description);
 
@@ -150,6 +158,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
         category: autoCategory,
         date: formData.date,
         type: formData.type,
+        paymentMethod: formData.paymentMethod,
         isAutoClassified
       };
 
@@ -162,6 +171,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
       category: '',
       type: 'expense',
       date: new Date().toISOString().split('T')[0],
+      paymentMethod: '',
     });
     setIsDialogOpen(false);
   };
@@ -174,6 +184,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
       category: transaction.category,
       type: transaction.type,
       date: transaction.date,
+      paymentMethod: transaction.paymentMethod || '',
     });
     setIsDialogOpen(true);
   };
@@ -307,6 +318,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
             category: '',
             type: 'expense',
             date: new Date().toISOString().split('T')[0],
+            paymentMethod: '',
           });
         }
       }}>
@@ -387,6 +399,25 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                   비워두면 자동으로 분류됩니다
                 </p>
               )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="paymentMethod">지불방법</Label>
+              <Select
+                value={formData.paymentMethod}
+                onValueChange={(value) => setFormData({...formData, paymentMethod: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="지불방법 선택" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-800">
+                  {paymentMethods[formData.type].map((method) => (
+                    <SelectItem key={method} value={method}>
+                      {method}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <Button type="submit" className="w-full">
@@ -564,6 +595,11 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                     <Badge variant="outline" className="text-xs px-1.5 py-0.5">
                       {transaction.category}
                     </Badge>
+                    {transaction.paymentMethod && (
+                      <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-blue-50">
+                        {transaction.paymentMethod}
+                      </Badge>
+                    )}
                     <span>{transaction.date}</span>
                   </div>
                 </div>
