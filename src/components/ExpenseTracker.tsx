@@ -32,6 +32,45 @@ interface ExpenseTrackerProps {
   onShowAnalysis: () => void;
 }
 
+// 한국식 단위로 금액 포맷팅
+function formatKoreanCurrency(amount: number): string {
+  const absAmount = Math.abs(amount);
+
+  if (absAmount >= 100000000) {
+    // 억 단위
+    const eok = Math.floor(absAmount / 100000000);
+    const remainder = absAmount % 100000000;
+
+    if (remainder >= 10000000) {
+      const man = Math.floor(remainder / 10000);
+      return `${eok}억 ${Math.floor(man / 1000)}천만`;
+    } else if (remainder >= 10000) {
+      const man = Math.floor(remainder / 10000);
+      return `${eok}억 ${man}만`;
+    } else if (remainder >= 1000) {
+      const cheon = Math.floor(remainder / 1000);
+      return `${eok}억 ${cheon}천`;
+    }
+    return `${eok}억`;
+  } else if (absAmount >= 10000) {
+    // 만 단위
+    const man = Math.floor(absAmount / 10000);
+    const remainder = absAmount % 10000;
+
+    if (remainder >= 1000) {
+      const cheon = Math.floor(remainder / 1000);
+      return `${man}만 ${cheon}천`;
+    }
+    return `${man}만`;
+  } else if (absAmount >= 1000) {
+    // 천 단위
+    const cheon = Math.floor(absAmount / 1000);
+    return `${cheon}천`;
+  }
+
+  return absAmount.toString();
+}
+
 export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([
     { id: 1, description: '급여', amount: 2800000, category: '급여', date: '2025-08-01', type: 'income' },
@@ -187,7 +226,6 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                   variant="outline"
                   size="sm"
                   className="h-9 bg-blue-50 border-blue-200 hover:bg-blue-100"
-                  onClick={() => setShowCalendar(!showCalendar)}
                 >
                   <Calendar className="w-4 h-4 mr-2 text-blue-600" />
                   <span className="text-blue-700 font-medium">
@@ -197,7 +235,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                 </Button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-auto p-0 shadow-lg border-2 z-50 bg-white"
+                className="w-auto p-3 shadow-xl border-2 !z-[100] bg-white dark:bg-gray-800"
                 align="end"
                 sideOffset={8}
               >
@@ -212,6 +250,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                   }}
                   initialFocus
                   locale={ko}
+                  className="rounded-md"
                 />
               </PopoverContent>
             </Popover>
@@ -258,16 +297,16 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="type">유형</Label>
-              <Select 
-                value={formData.type} 
-                onValueChange={(value: 'income' | 'expense') => 
+              <Select
+                value={formData.type}
+                onValueChange={(value: 'income' | 'expense') =>
                   setFormData({...formData, type: value, category: ''})
                 }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-gray-800">
                   <SelectItem value="expense">지출</SelectItem>
                   <SelectItem value="income">수입</SelectItem>
                 </SelectContent>
@@ -299,14 +338,14 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
 
             <div className="space-y-2">
               <Label htmlFor="category">카테고리</Label>
-              <Select 
-                value={formData.category} 
+              <Select
+                value={formData.category}
                 onValueChange={(value) => setFormData({...formData, category: value})}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="자동 분류 또는 선택" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-gray-800">
                   {categories[formData.type].map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
@@ -361,7 +400,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                 <div className="text-center">
                   <p className="text-xs text-muted-foreground font-medium">총 지출</p>
                   <p className="text-lg font-bold text-red-600">
-                    ₩{(totalExpense / 1000000).toFixed(1)}M
+                    ₩{formatKoreanCurrency(totalExpense)}
                   </p>
                 </div>
               </div>
@@ -369,12 +408,12 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
             <div className="grid grid-cols-2 gap-2 mt-3">
               {categorySpending.map((cat, index) => (
                 <div key={cat.name} className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
+                  <div
+                    className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: CHART_COLORS[index] }}
                   />
                   <span className="text-xs">{cat.name}</span>
-                  <span className="text-xs font-medium ml-auto">₩{(cat.spent / 1000)}K</span>
+                  <span className="text-xs font-medium ml-auto">₩{formatKoreanCurrency(cat.spent)}</span>
                 </div>
               ))}
             </div>
@@ -390,7 +429,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
               <TrendingUp className="h-4 w-4 text-green-600 mx-auto mb-1" />
               <div className="text-xs text-muted-foreground">수입</div>
               <div className="text-sm font-semibold text-green-600">
-                +₩{(totalIncome / 1000000).toFixed(1)}M
+                +₩{formatKoreanCurrency(totalIncome)}
               </div>
             </div>
           </Card>
@@ -400,7 +439,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
               <TrendingDown className="h-4 w-4 text-red-600 mx-auto mb-1" />
               <div className="text-xs text-muted-foreground">지출</div>
               <div className="text-sm font-semibold text-red-600">
-                -₩{(totalExpense / 1000000).toFixed(1)}M
+                -₩{formatKoreanCurrency(totalExpense)}
               </div>
             </div>
           </Card>
@@ -412,7 +451,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
               <div className={`text-sm font-semibold ${
                 totalIncome - totalExpense >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>
-                ₩{((totalIncome - totalExpense) / 1000000).toFixed(1)}M
+                ₩{formatKoreanCurrency(totalIncome - totalExpense)}
               </div>
             </div>
           </Card>
@@ -445,17 +484,17 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                     </div>
                     <div className="text-right">
                       <div className="font-semibold text-sm">
-                        ₩{(category.spent / 1000)}K
+                        ₩{formatKoreanCurrency(category.spent)}
                       </div>
                     </div>
                   </div>
-                  <Progress 
-                    value={Math.min(percentage, 100)} 
+                  <Progress
+                    value={Math.min(percentage, 100)}
                     className={`h-1.5 ${isOverBudget ? 'bg-red-100' : ''}`}
                   />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>{percentage.toFixed(1)}%</span>
-                    <span>₩{((category.budget - category.spent) / 1000)}K 남음</span>
+                    <span>₩{formatKoreanCurrency(category.budget - category.spent)} 남음</span>
                   </div>
                 </div>
               );
