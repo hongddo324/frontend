@@ -187,6 +187,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                   variant="outline"
                   size="sm"
                   className="h-9 bg-blue-50 border-blue-200 hover:bg-blue-100"
+                  onClick={() => setShowCalendar(!showCalendar)}
                 >
                   <Calendar className="w-4 h-4 mr-2 text-blue-600" />
                   <span className="text-blue-700 font-medium">
@@ -195,7 +196,11 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                   <ChevronDown className="w-3 h-3 ml-1 text-blue-600" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 shadow-lg border-2" align="end">
+              <PopoverContent
+                className="w-auto p-0 shadow-lg border-2 z-50 bg-white"
+                align="end"
+                sideOffset={8}
+              >
                 <CalendarComponent
                   mode="single"
                   selected={selectedDate}
@@ -330,26 +335,37 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
             <CardTitle className="text-base">8월 지출 분석</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={pieChartData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                  ))}
-                </Pie>
-                <RechartsTooltip 
-                  formatter={(value: number) => `₩${value.toLocaleString()}`}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="relative">
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <RechartsTooltip
+                    formatter={(value: number) => `₩${value.toLocaleString()}`}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              {/* 도넛 차트 중앙에 총 지출 금액 표시 */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground font-medium">총 지출</p>
+                  <p className="text-lg font-bold text-red-600">
+                    ₩{(totalExpense / 1000000).toFixed(1)}M
+                  </p>
+                </div>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-2 mt-3">
               {categorySpending.map((cat, index) => (
                 <div key={cat.name} className="flex items-center gap-2">

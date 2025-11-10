@@ -11,7 +11,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { AnimatedSection } from './AnimatedSection';
 import { Separator } from './ui/separator';
 import { ScrollArea } from './ui/scroll-area';
-import { Plus, Calendar, Heart, ImagePlus, X, MessageCircle, Send, ArrowLeft } from 'lucide-react';
+import { Plus, Calendar, Heart, ImagePlus, X, MessageCircle, Send, ArrowLeft, Search } from 'lucide-react';
 
 interface Comment {
   id: number;
@@ -104,6 +104,8 @@ export function DailyLife() {
   const [selectedEntry, setSelectedEntry] = useState<DailyEntry | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [commentText, setCommentText] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState<'title' | 'tag' | 'date'>('title');
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -224,6 +226,24 @@ export function DailyLife() {
     neutral: entries.filter(e => e.mood === 'neutral').length,
     bad: entries.filter(e => e.mood === 'bad').length
   };
+
+  // 검색 필터링
+  const filteredEntries = entries.filter(entry => {
+    if (!searchTerm) return true;
+
+    const lowerSearchTerm = searchTerm.toLowerCase();
+
+    switch (searchType) {
+      case 'title':
+        return entry.title.toLowerCase().includes(lowerSearchTerm);
+      case 'tag':
+        return entry.tags.some(tag => tag.toLowerCase().includes(lowerSearchTerm));
+      case 'date':
+        return entry.date.includes(searchTerm);
+      default:
+        return true;
+    }
+  });
 
   return (
     <div className="p-4 space-y-4 overflow-auto h-full">
@@ -403,13 +423,64 @@ export function DailyLife() {
         </div>
       </AnimatedSection>
 
+      {/* 검색 */}
+      <AnimatedSection delay={0.15}>
+        <Card className="p-4 mb-4">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Search className="w-4 h-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold">검색</h3>
+            </div>
+            <div className="flex gap-2">
+              <Select value={searchType} onValueChange={(value: 'title' | 'tag' | 'date') => setSearchType(value)}>
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="title">제목</SelectItem>
+                  <SelectItem value="tag">태그</SelectItem>
+                  <SelectItem value="date">날짜</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="relative flex-1">
+                <Input
+                  placeholder={
+                    searchType === 'title' ? '제목 검색...' :
+                    searchType === 'tag' ? '태그 검색...' :
+                    '날짜 검색 (예: 2025-08-14)'
+                  }
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            </div>
+            {searchTerm && (
+              <p className="text-xs text-muted-foreground">
+                {filteredEntries.length}개의 결과를 찾았습니다.
+              </p>
+            )}
+          </div>
+        </Card>
+      </AnimatedSection>
+
       {/* 일상 목록 */}
       <div className="space-y-3">
-        {entries.map((entry, index) => {
-          const moodData = moodIcons[entry.mood];
-          return (
-            <AnimatedSection key={entry.id} delay={index * 0.05}>
-              <Card 
+        {filteredEntries.length === 0 ? (
+          <Card className="p-8">
+            <div className="text-center text-muted-foreground">
+              <Search className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">
+                {searchTerm ? '검색 결과가 없습니다.' : '기록된 일상이 없습니다.'}
+              </p>
+            </div>
+          </Card>
+        ) : (
+          filteredEntries.map((entry, index) => {
+            const moodData = moodIcons[entry.mood];
+            return (
+              <AnimatedSection key={entry.id} delay={index * 0.05}>
+                <Card 
                 className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => setSelectedEntry(entry)}
               >
@@ -474,7 +545,8 @@ export function DailyLife() {
               </Card>
             </AnimatedSection>
           );
-        })}
+        })
+        )}
       </div>
 
       {/* 상세보기 Dialog */}
