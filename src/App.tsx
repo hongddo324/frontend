@@ -12,6 +12,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   // 로그인 상태 확인
   useEffect(() => {
@@ -32,14 +33,20 @@ export default function App() {
   const renderContent = () => {
     // 분석 화면 표시
     if (showAnalysis) {
-      return <MonthlyComparison onBack={() => setShowAnalysis(false)} />;
+      return <MonthlyComparison selectedDate={selectedDate} onBack={() => setShowAnalysis(false)} />;
     }
 
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
       case 'expenses':
-        return <ExpenseTracker onShowAnalysis={() => setShowAnalysis(true)} />;
+        return (
+          <ExpenseTracker
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
+            onShowAnalysis={() => setShowAnalysis(true)}
+          />
+        );
       case 'daily':
         return <DailyLife />;
       case 'schedule':

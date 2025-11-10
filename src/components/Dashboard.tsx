@@ -5,6 +5,33 @@ import { AnimatedSection } from './AnimatedSection';
 import { Bell, TrendingUp, TrendingDown, DollarSign, Calendar, Heart, ChevronRight } from 'lucide-react';
 
 export function Dashboard() {
+  // 한국어 단위로 금액 표시
+  function formatKoreanCurrency(amount: number): string {
+    const sign = amount < 0 ? '-' : '';
+    const n = Math.abs(amount);
+    if (n >= 100000000) {
+      const eok = Math.floor(n / 100000000);
+      const restMan = Math.floor((n % 100000000) / 10000);
+      if (restMan > 0) {
+        return sign + '₩' + eok.toString() + '억 ' + restMan.toLocaleString() + '만';
+      }
+      return sign + '₩' + eok.toString() + '억';
+    }
+    if (n >= 10000) {
+      const man = Math.floor(n / 10000);
+      const rest = n % 10000;
+      if (rest > 0) {
+        return sign + '₩' + man.toString() + '만 ' + rest.toLocaleString();
+      }
+      return sign + '₩' + man.toString() + '만';
+    }
+    if (n >= 1000) {
+      return sign + '₩' + n.toLocaleString();
+    }
+    return sign + '₩' + n.toLocaleString();
+  }
+
+  const daysSince = Math.floor((Date.now() - new Date('2024-09-22').getTime()) / (1000*60*60*24));
   const notifications = [
     {
       id: 1,
@@ -12,7 +39,7 @@ export function Dashboard() {
       message: '쇼핑 카테고리가 예산의 106.7%를 사용했습니다.',
       type: 'warning',
       time: '2시간 전',
-      icon: '⚠️',
+      icon: '🛍️',
     },
     {
       id: 2,
@@ -24,11 +51,11 @@ export function Dashboard() {
     },
     {
       id: 3,
-      title: '월말 정산 알림',
+      title: '월말 예산 알림',
       message: '이번 달 마감이 3일 남았습니다. 지출을 정리해보세요.',
       type: 'info',
       time: '1일 전',
-      icon: '📅',
+      icon: '💡',
     },
   ];
 
@@ -36,15 +63,15 @@ export function Dashboard() {
     {
       id: 1,
       title: '카페에서의 여유',
-      content: '오랜만에 친구와 카페에서 수다를 떨었다. 집에서 만든 커피도 좋지만...',
+      content: '오랜만에 친구와 카페에서 수다를 떨었다. 집에서 만든 커피도 좋지만..',
       category: '일상',
       date: '08.14',
-      mood: '😊',
+      mood: '☕',
     },
     {
       id: 2,
       title: '재택근무 하루',
-      content: '집에서 일하니 출퇴근 스트레스가 없어서 좋다. 점심도 직접 해먹고...',
+      content: '집에서 일하니 출퇴근 스트레스가 없어서 좋다. 점심도 직접 해먹고..',
       category: '일상',
       date: '08.13',
       mood: '😊',
@@ -54,7 +81,7 @@ export function Dashboard() {
   const quickStats = [
     {
       title: '이달 수입',
-      value: '₩2.8M',
+      value: formatKoreanCurrency(2800000),
       change: '+12.5%',
       trend: 'up',
       icon: TrendingUp,
@@ -63,7 +90,7 @@ export function Dashboard() {
     },
     {
       title: '이달 지출',
-      value: '₩1.3M',
+      value: formatKoreanCurrency(1300000),
       change: '-8.2%',
       trend: 'down',
       icon: TrendingDown,
@@ -71,8 +98,8 @@ export function Dashboard() {
       bg: 'bg-red-100',
     },
     {
-      title: '잔여 예산',
-      value: '₩1.5M',
+      title: '남은 예산',
+      value: formatKoreanCurrency(1500000),
       change: '+20.3%',
       trend: 'up',
       icon: DollarSign,
@@ -80,8 +107,8 @@ export function Dashboard() {
       bg: 'bg-blue-100',
     },
     {
-      title: '저축률',
-      value: '54.1%',
+      title: '현재 자산',
+      value: formatKoreanCurrency(5500000),
       change: '+5.1%',
       trend: 'up',
       icon: Heart,
@@ -109,15 +136,21 @@ export function Dashboard() {
       <AnimatedSection>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white overflow-hidden">
-              <img 
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
-                alt="프로필" 
-                className="w-full h-full object-cover"
-              />
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white overflow-hidden">
+                <img
+                  src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                  alt="프로필"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                <svg className="w-3 h-3 text-red-500 fill-red-500" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 21s-6.716-4.438-9.657-7.379C-.083 11.04-.083 7.96 2.343 5.535c2.121-2.121 5.657-2.121 7.778 0L12 7.414l1.879-1.879c2.121-2.121 5.657-2.121 7.778 0 2.426 2.426 2.426 5.506-.001 8.086C18.716 16.562 12 21 12 21z"/></svg>
+                <span>{`+ ${daysSince}일`}</span>
+              </div>
             </div>
             <div>
-              <h1 className="text-xl font-semibold">안녕하세요 👋</h1>
+              <h1 className="text-xl font-semibold">안녕하세요 민수님</h1>
               <p className="text-sm text-muted-foreground">오늘도 현명한 소비를 시작해보세요</p>
             </div>
           </div>
@@ -194,7 +227,7 @@ export function Dashboard() {
         </Card>
       </AnimatedSection>
 
-      {/* 최근 일상 게시물 */}
+      {/* 최근 일상 게시글 */}
       <AnimatedSection delay={0.2}>
         <Card>
           <CardHeader className="pb-3">
