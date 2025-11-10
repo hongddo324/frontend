@@ -30,8 +30,8 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
             <PiggyBank className="w-6 h-6 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-semibold text-lg">스마트 가계부</h1>
-            <p className="text-muted-foreground text-sm">포트폴리오</p>
+            <h1 className="font-semibold text-lg">또또 블로그</h1>
+            <p className="text-muted-foreground text-sm">일상 기록</p>
           </div>
         </div>
       </div>
