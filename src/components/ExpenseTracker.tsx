@@ -10,7 +10,7 @@ import { Calendar as CalendarComponent } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { AnimatedSection } from './AnimatedSection';
 import { Progress } from './ui/progress';
-import { Plus, Search, TrendingUp, TrendingDown, Calendar, ChevronDown, CreditCard, AlertTriangle, Edit2, Trash2, BarChart3 } from 'lucide-react';
+import { Plus, Search, TrendingUp, TrendingDown, Calendar, ChevronDown, CreditCard, AlertTriangle, Edit2, Trash2, BarChart3, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from './ui/utils';
@@ -184,9 +184,25 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
     }
   };
 
-  const filteredTransactions = transactions.filter(transaction => 
-    transaction.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTransactions = transactions.filter(transaction => {
+    const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // 날짜 필터링
+    if (selectedDate) {
+      const transactionDate = new Date(transaction.date);
+      const selected = new Date(selectedDate);
+
+      // 날짜만 비교 (시간 제외)
+      const isSameDate =
+        transactionDate.getFullYear() === selected.getFullYear() &&
+        transactionDate.getMonth() === selected.getMonth() &&
+        transactionDate.getDate() === selected.getDate();
+
+      return matchesSearch && isSameDate;
+    }
+
+    return matchesSearch;
+  });
 
   const totalIncome = transactions
     .filter(t => t.type === 'income')
@@ -220,40 +236,53 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
               <h1 className="text-xl font-semibold">가계부</h1>
               <p className="text-sm text-muted-foreground">수입과 지출을 관리하세요</p>
             </div>
-            <Popover open={showCalendar} onOpenChange={setShowCalendar}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 bg-blue-50 border-blue-200 hover:bg-blue-100"
+            <div className="flex items-center gap-2">
+              <Popover open={showCalendar} onOpenChange={setShowCalendar}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 bg-blue-50 border-blue-200 hover:bg-blue-100"
+                  >
+                    <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                    <span className="text-blue-700 font-medium">
+                      {selectedDate ? format(selectedDate, 'M월 d일', { locale: ko }) : '날짜 선택'}
+                    </span>
+                    <ChevronDown className="w-3 h-3 ml-1 text-blue-600" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto p-3 shadow-xl border-2 !z-[100] bg-white dark:bg-gray-800"
+                  align="end"
+                  sideOffset={8}
                 >
-                  <Calendar className="w-4 h-4 mr-2 text-blue-600" />
-                  <span className="text-blue-700 font-medium">
-                    {selectedDate ? format(selectedDate, 'M월 d일', { locale: ko }) : '날짜 선택'}
-                  </span>
-                  <ChevronDown className="w-3 h-3 ml-1 text-blue-600" />
+                  <CalendarComponent
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      if (date) {
+                        setSelectedDate(date);
+                        setShowCalendar(false);
+                      }
+                    }}
+                    initialFocus
+                    locale={ko}
+                    className="rounded-md"
+                  />
+                </PopoverContent>
+              </Popover>
+              {selectedDate && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9"
+                  onClick={() => setSelectedDate(undefined)}
+                  title="날짜 필터 제거"
+                >
+                  <X className="w-4 h-4" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-auto p-3 shadow-xl border-2 !z-[100] bg-white dark:bg-gray-800"
-                align="end"
-                sideOffset={8}
-              >
-                <CalendarComponent
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setSelectedDate(date);
-                      setShowCalendar(false);
-                    }
-                  }}
-                  initialFocus
-                  locale={ko}
-                  className="rounded-md"
-                />
-              </PopoverContent>
-            </Popover>
+              )}
+            </div>
           </div>
           {/* 분석 버튼 */}
           <Button

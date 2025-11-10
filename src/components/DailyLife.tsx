@@ -460,22 +460,24 @@ export function DailyLife() {
                 </SelectContent>
               </Select>
               {searchType === 'date' ? (
-                <div className="flex-1 flex gap-2">
-                  <Input
-                    type="date"
-                    placeholder="시작일"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="flex-1"
-                  />
-                  <span className="flex items-center text-sm text-muted-foreground">~</span>
-                  <Input
-                    type="date"
-                    placeholder="종료일"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="flex-1"
-                  />
+                <div className="flex-1 flex flex-col sm:flex-row gap-2">
+                  <div className="flex items-center gap-2 flex-1">
+                    <Input
+                      type="date"
+                      placeholder="시작일"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="flex-1 min-w-0 text-sm"
+                    />
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">~</span>
+                    <Input
+                      type="date"
+                      placeholder="종료일"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="flex-1 min-w-0 text-sm"
+                    />
+                  </div>
                 </div>
               ) : (
                 <div className="relative flex-1">

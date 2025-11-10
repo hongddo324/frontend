@@ -59,8 +59,8 @@ export function Login({ onLogin }: LoginProps) {
             <div className="inline-flex items-center justify-center w-14 h-14 bg-primary/10 rounded-full mb-3">
               <Wallet className="w-7 h-7 text-primary" />
             </div>
-            <h1 className="text-2xl font-semibold mb-1">스마트 가계부</h1>
-            <p className="text-sm text-muted-foreground">똑똑한 소비를 위한 첫걸음</p>
+            <h1 className="text-2xl font-semibold mb-1">또또 블로그</h1>
+            <p className="text-sm text-muted-foreground">일상을 기록하고 공유하세요</p>
           </div>
         </AnimatedSection>
 

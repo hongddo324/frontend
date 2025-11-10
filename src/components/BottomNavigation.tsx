@@ -33,10 +33,10 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
               key={item.id}
               onClick={() => onTabChange(item.id)}
               className={cn(
-                "flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all duration-200",
+                "relative flex flex-col items-center gap-1 py-2 px-3 rounded-lg transition-all duration-200",
                 "min-w-0 flex-1 max-w-20",
-                isActive 
-                  ? "text-primary bg-primary/5" 
+                isActive
+                  ? "text-primary bg-primary/10"
                   : "text-muted-foreground active:bg-accent"
               )}
             >
@@ -46,10 +46,13 @@ export function BottomNavigation({ activeTab, onTabChange }: BottomNavigationPro
               )} />
               <span className={cn(
                 "text-xs transition-all duration-200 truncate",
-                isActive ? "font-medium" : "font-normal"
+                isActive ? "font-semibold" : "font-normal"
               )}>
                 {item.label}
               </span>
+              {isActive && (
+                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-primary rounded-t-full" />
+              )}
             </button>
           );
         })}
