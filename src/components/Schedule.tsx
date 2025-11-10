@@ -10,7 +10,8 @@ import { Separator } from './ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { Calendar as CalendarComponent } from './ui/calendar';
 import { AnimatedSection } from './AnimatedSection';
-import { Plus, Calendar, Users, Heart, MessageCircle, Send, Trash2, Edit2 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+import { Plus, Calendar, Users, Heart, MessageCircle, Send, Trash2, Edit2, Share2, Copy, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
@@ -187,6 +188,42 @@ export function Schedule() {
       setIsEventDialogOpen(false);
       setSelectedEvent(null);
     }
+  };
+
+  // 공유 기능 핸들러
+  const handleShareURL = (event: ScheduleEvent) => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}?schedule=${event.id}&date=${event.date}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert('일정 링크가 클립보드에 복사되었습니다!');
+    }).catch(() => {
+      alert('링크 복사에 실패했습니다.');
+    });
+  };
+
+  const handleShareKakao = (event: ScheduleEvent) => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}?schedule=${event.id}&date=${event.date}`;
+    const text = `${event.title}\n${event.description}\n${format(new Date(event.date), 'yyyy년 M월 d일 (E)', { locale: ko })}`;
+
+    // 카카오톡 웹 공유 URL 스킴 사용
+    const kakaoUrl = `https://sharer.kakao.com/talk/friends/picker/link?app_key=YOUR_APP_KEY&validation_action=share&validation_params=${encodeURIComponent(JSON.stringify({ url: shareUrl, text: text }))}`;
+
+    // 모바일 환경에서는 직접 앱 열기, 데스크톱에서는 알림
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      window.open(kakaoUrl, '_blank');
+    } else {
+      // 데스크톱에서는 URL을 복사하고 안내 메시지 표시
+      navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+      alert('일정 정보가 복사되었습니다!\n카카오톡에 붙여넣기 해주세요.');
+    }
+  };
+
+  const handleShareTelegram = (event: ScheduleEvent) => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}?schedule=${event.id}&date=${event.date}`;
+    const text = `${event.title}\n${event.description}\n${format(new Date(event.date), 'yyyy년 M월 d일 (E)', { locale: ko })}`;
+
+    // 텔레그램 공유 URL
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
+    window.open(telegramUrl, '_blank');
   };
 
   const eventsForSelectedDate = selectedDate
@@ -388,6 +425,47 @@ export function Schedule() {
                     </DialogDescription>
                   </div>
                   <div className="flex gap-1">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Share2 className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShareURL(selectedEvent);
+                          }}
+                        >
+                          <Copy className="w-4 h-4 mr-2" />
+                          URL 복사
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShareKakao(selectedEvent);
+                          }}
+                        >
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          카카오톡 공유
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShareTelegram(selectedEvent);
+                          }}
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          텔레그램 공유
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button
                       variant="ghost"
                       size="icon"
