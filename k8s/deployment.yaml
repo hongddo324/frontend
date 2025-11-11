@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: family-frontend
+  namespace: default
+  labels:
+    app: family-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: family-frontend
+  template:
+    metadata:
+      labels:
+        app: family-frontend
+    spec:
+      containers:
+      - name: family-frontend
+        image: registry.gitlab.com/your-group/family-frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      # GitLab Container Registry에서 이미지를 가져오기 위한 imagePullSecrets
+      imagePullSecrets:
+      - name: gitlab-registry-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: family-frontend
+  namespace: default
+  labels:
+    app: family-frontend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    app: family-frontend
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: family-frontend
+  namespace: default
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - family.your-domain.com
+    secretName: family-frontend-tls
+  rules:
+  - host: family.your-domain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: family-frontend
+            port:
+              number: 80

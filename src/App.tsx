@@ -7,6 +7,7 @@ import { MonthlyComparison } from './components/MonthlyComparison';
 import { Settings } from './components/Settings';
 import { Schedule } from './components/Schedule';
 import { Login } from './components/Login';
+import { AppProvider } from './contexts/AppContext';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -64,14 +65,16 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background max-w-md mx-auto border-x">
-      <main className="flex-1 overflow-hidden pb-20">
-        {renderContent()}
-      </main>
-      <BottomNavigation activeTab={activeTab} onTabChange={(tab) => {
-        setActiveTab(tab);
-        setShowAnalysis(false); // 탭 변경 시 분석 화면 닫기
-      }} />
-    </div>
+    <AppProvider>
+      <div className="flex flex-col h-screen bg-background max-w-md mx-auto border-x">
+        <main className="flex-1 overflow-hidden pb-20">
+          {renderContent()}
+        </main>
+        <BottomNavigation activeTab={activeTab} onTabChange={(tab) => {
+          setActiveTab(tab);
+          setShowAnalysis(false); // 탭 변경 시 분석 화면 닫기
+        }} />
+      </div>
+    </AppProvider>
   );
 }

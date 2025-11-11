@@ -11,91 +11,121 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { AnimatedSection } from './AnimatedSection';
 import { Separator } from './ui/separator';
 import { ScrollArea } from './ui/scroll-area';
-import { Plus, Calendar, Heart, ImagePlus, X, MessageCircle, Send, ArrowLeft, Search } from 'lucide-react';
+import { Plus, Calendar, Heart, ImagePlus, X, MessageCircle, Send, ArrowLeft, Search, ChevronDown, ChevronUp } from 'lucide-react';
+
+interface Reply {
+  id: number;
+  userId: string;
+  userName: string;
+  text: string;
+  timestamp: string;
+}
 
 interface Comment {
   id: number;
-  author: string;
-  content: string;
-  date: string;
-  avatar: string;
+  userId: string;
+  userName: string;
+  text: string;
+  timestamp: string;
+  replies: Reply[];
+}
+
+interface MediaItem {
+  url: string;
+  type: 'image' | 'video';
 }
 
 interface DailyEntry {
   id: number;
-  date: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
   title: string;
-  content: string;
+  media?: MediaItem[];
+  caption: string;
   mood: 'good' | 'neutral' | 'bad';
   category: string;
-  tags: string[];
-  images: string[];
-  likes: number;
-  liked: boolean;
+  date: string;
+  likes: string[]; // array of user IDs who liked
   comments: Comment[];
 }
 
 export function DailyLife() {
+  const currentUserId = 'user_123'; // Current logged-in user
   const [entries, setEntries] = useState<DailyEntry[]>([
     {
       id: 1,
+      userId: 'user_456',
+      userName: '홍길동',
+      userAvatar: '👨',
       date: '2025-08-14',
-      title: '카페에서의 여유',
-      content: '오랜만에 친구와 카페에서 수다를 떨었다. 집에서 만든 커피도 좋지만, 가끔은 이런 여유도 필요하다는 걸 느꼈다. 새로운 메뉴도 맛있었고 분위기도 좋았다.',
+      title: '친구와 함께한 카페 나들이',
+      caption: '오랜만에 친구와 카페에서 수다를 떨었다. 집에서 만든 커피도 좋지만, 가끔은 이런 여유도 필요하다는 걸 느꼈다. 새로운 메뉴도 맛있었고 분위기도 좋았다.',
       mood: 'good',
       category: '일상',
-      tags: ['카페', '친구', '휴식'],
-      images: [],
-      likes: 12,
-      liked: false,
+      media: [],
+      likes: ['user_789', 'user_101', 'user_102'],
       comments: [
         {
           id: 1,
-          author: '김민지',
-          content: '좋은 시간 보내셨네요! 저도 가끔 그런 여유가 필요해요 😊',
-          date: '2025-08-14',
-          avatar: '👩'
+          userId: 'user_789',
+          userName: '김민지',
+          text: '좋은 시간 보내셨네요! 저도 가끔 그런 여유가 필요해요',
+          timestamp: '2025-08-14',
+          replies: [
+            {
+              id: 1,
+              userId: 'user_456',
+              userName: '홍길동',
+              text: '감사합니다! 다음에 같이 가요',
+              timestamp: '2025-08-14'
+            }
+          ]
         },
         {
           id: 2,
-          author: '이준호',
-          content: '어느 카페인가요? 분위기 좋아 보이네요!',
-          date: '2025-08-14',
-          avatar: '👨'
+          userId: 'user_101',
+          userName: '이준호',
+          text: '어느 카페인가요? 분위기 좋아 보이네요!',
+          timestamp: '2025-08-14',
+          replies: []
         }
       ]
     },
     {
       id: 2,
+      userId: 'user_123',
+      userName: '나',
+      userAvatar: '😊',
       date: '2025-08-13',
-      title: '재택근무 하루',
-      content: '집에서 일하니 출퇴근 스트레스가 없어서 좋다. 점심도 직접 해먹고 집중도도 높았다. 저녁에는 운동도 할 수 있어서 건강한 하루를 보냈다.',
+      title: '재택근무로 얻은 여유로운 하루',
+      caption: '집에서 일하니 출퇴근 스트레스가 없어서 좋다. 점심도 직접 해먹고 집중도도 높았다. 저녁에는 운동도 할 수 있어서 건강한 하루를 보냈다.',
       mood: 'good',
       category: '일상',
-      tags: ['재택근무', '건강', '운동'],
-      images: [],
-      likes: 8,
-      liked: true,
+      media: [],
+      likes: ['user_123', 'user_456', 'user_789'],
       comments: []
     },
     {
       id: 3,
+      userId: 'user_999',
+      userName: '김철수',
+      userAvatar: '👨‍💼',
       date: '2025-08-12',
-      title: '독서하는 주말',
-      content: '주말 내내 읽고 싶었던 책을 다 읽었다. 자기계발서였는데 재정 관리에 대한 좋은 인사이트를 많이 얻었다. 실천해봐야겠다.',
+      title: '재정 관리 자기계발서 완독',
+      caption: '주말 내내 읽고 싶었던 책을 다 읽었다. 자기계발서였는데 재정 관리에 대한 좋은 인사이트를 많이 얻었다. 실천해봐야겠다.',
       mood: 'good',
       category: '취미',
-      tags: ['독서', '자기계발', '주말'],
-      images: [],
-      likes: 15,
-      liked: false,
+      media: [],
+      likes: ['user_123', 'user_456'],
       comments: [
         {
           id: 1,
-          author: '박지영',
-          content: '무슨 책인지 궁금해요! 추천해주세요 📚',
-          date: '2025-08-12',
-          avatar: '👩‍💼'
+          userId: 'user_789',
+          userName: '박지영',
+          text: '무슨 책인지 궁금해요! 추천해주세요',
+          timestamp: '2025-08-12',
+          replies: []
         }
       ]
     }
@@ -104,17 +134,22 @@ export function DailyLife() {
   const [selectedEntry, setSelectedEntry] = useState<DailyEntry | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [commentText, setCommentText] = useState('');
+  const [replyText, setReplyText] = useState('');
+  const [replyingTo, setReplyingTo] = useState<{ entryId: number; commentId: number } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'title' | 'tag' | 'date'>('title');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showAllComments, setShowAllComments] = useState<{ [key: number]: boolean }>({});
+  const [showReplies, setShowReplies] = useState<{ [key: string]: boolean }>({});
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     mood: 'neutral' as 'good' | 'neutral' | 'bad',
     category: '',
     tags: '',
-    images: [] as string[]
+    media: [] as MediaItem[]
   });
 
   const categories = [
@@ -129,18 +164,19 @@ export function DailyLife() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const newEntry: DailyEntry = {
       id: Date.now(),
+      userId: currentUserId,
+      userName: '나',
+      userAvatar: '😊',
       date: new Date().toISOString().split('T')[0],
       title: formData.title,
-      content: formData.content,
+      caption: formData.content,
       mood: formData.mood,
       category: formData.category,
-      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-      images: formData.images,
-      likes: 0,
-      liked: false,
+      media: formData.media,
+      likes: [],
       comments: []
     };
 
@@ -151,43 +187,50 @@ export function DailyLife() {
       mood: 'neutral',
       category: '',
       tags: '',
-      images: []
+      media: []
     });
     setIsDialogOpen(false);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-      setFormData({...formData, images: [...formData.images, ...newImages]});
+      const newMedia = Array.from(files).map(file => ({
+        url: URL.createObjectURL(file),
+        type: file.type.startsWith('video/') ? 'video' as const : 'image' as const
+      }));
+      setFormData({...formData, media: [...formData.media, ...newMedia]});
     }
   };
 
-  const removeImage = (index: number) => {
+  const removeMedia = (index: number) => {
     setFormData({
       ...formData,
-      images: formData.images.filter((_, i) => i !== index)
+      media: formData.media.filter((_, i) => i !== index)
     });
   };
 
   const toggleLike = (entryId: number) => {
     setEntries(entries.map(entry => {
       if (entry.id === entryId) {
+        const hasLiked = entry.likes.includes(currentUserId);
         return {
           ...entry,
-          liked: !entry.liked,
-          likes: entry.liked ? entry.likes - 1 : entry.likes + 1
+          likes: hasLiked
+            ? entry.likes.filter(id => id !== currentUserId)
+            : [...entry.likes, currentUserId]
         };
       }
       return entry;
     }));
 
     if (selectedEntry && selectedEntry.id === entryId) {
+      const hasLiked = selectedEntry.likes.includes(currentUserId);
       setSelectedEntry({
         ...selectedEntry,
-        liked: !selectedEntry.liked,
-        likes: selectedEntry.liked ? selectedEntry.likes - 1 : selectedEntry.likes + 1
+        likes: hasLiked
+          ? selectedEntry.likes.filter(id => id !== currentUserId)
+          : [...selectedEntry.likes, currentUserId]
       });
     }
   };
@@ -197,10 +240,11 @@ export function DailyLife() {
 
     const newComment: Comment = {
       id: Date.now(),
-      author: '나',
-      content: commentText,
-      date: new Date().toISOString().split('T')[0],
-      avatar: '😊'
+      userId: currentUserId,
+      userName: '나',
+      text: commentText,
+      timestamp: new Date().toISOString().split('T')[0],
+      replies: []
     };
 
     setEntries(entries.map(entry => {
@@ -221,6 +265,54 @@ export function DailyLife() {
     }
 
     setCommentText('');
+  };
+
+  const addReply = (entryId: number, commentId: number) => {
+    if (!replyText.trim()) return;
+
+    const newReply: Reply = {
+      id: Date.now(),
+      userId: currentUserId,
+      userName: '나',
+      text: replyText,
+      timestamp: new Date().toISOString().split('T')[0]
+    };
+
+    setEntries(entries.map(entry => {
+      if (entry.id === entryId) {
+        return {
+          ...entry,
+          comments: entry.comments.map(comment => {
+            if (comment.id === commentId) {
+              return {
+                ...comment,
+                replies: [...comment.replies, newReply]
+              };
+            }
+            return comment;
+          })
+        };
+      }
+      return entry;
+    }));
+
+    if (selectedEntry && selectedEntry.id === entryId) {
+      setSelectedEntry({
+        ...selectedEntry,
+        comments: selectedEntry.comments.map(comment => {
+          if (comment.id === commentId) {
+            return {
+              ...comment,
+              replies: [...comment.replies, newReply]
+            };
+          }
+          return comment;
+        })
+      });
+    }
+
+    setReplyText('');
+    setReplyingTo(null);
   };
 
   const moodStats = {
@@ -253,9 +345,9 @@ export function DailyLife() {
 
       switch (searchType) {
         case 'title':
-          return entry.title.toLowerCase().includes(lowerSearchTerm);
+          return entry.title.toLowerCase().includes(lowerSearchTerm) || entry.caption.toLowerCase().includes(lowerSearchTerm);
         case 'tag':
-          return entry.tags.some(tag => tag.toLowerCase().includes(lowerSearchTerm));
+          return entry.category.toLowerCase().includes(lowerSearchTerm);
         default:
           return true;
       }
@@ -313,40 +405,48 @@ export function DailyLife() {
               </div>
 
               <div className="space-y-2">
-                <Label>사진 추가</Label>
+                <Label>사진/동영상 추가</Label>
                 <div className="flex items-center gap-2">
-                  <label htmlFor="image-upload" className="cursor-pointer">
+                  <label htmlFor="media-upload" className="cursor-pointer">
                     <div className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-accent transition-colors">
                       <ImagePlus className="w-4 h-4" />
-                      <span className="text-sm">사진 선택</span>
+                      <span className="text-sm">사진/동영상 선택</span>
                     </div>
                     <input
-                      id="image-upload"
+                      id="media-upload"
                       type="file"
-                      accept="image/*"
+                      accept="image/*,video/*"
                       multiple
-                      onChange={handleImageUpload}
+                      onChange={handleMediaUpload}
                       className="hidden"
                     />
                   </label>
-                  {formData.images.length > 0 && (
+                  {formData.media.length > 0 && (
                     <span className="text-sm text-muted-foreground">
-                      {formData.images.length}장 선택됨
+                      {formData.media.length}개 선택됨
                     </span>
                   )}
                 </div>
-                {formData.images.length > 0 && (
+                {formData.media.length > 0 && (
                   <div className="grid grid-cols-3 gap-2 mt-2">
-                    {formData.images.map((img, index) => (
+                    {formData.media.map((item, index) => (
                       <div key={index} className="relative aspect-square">
-                        <img
-                          src={img}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
+                        {item.type === 'video' ? (
+                          <video
+                            src={item.url}
+                            className="w-full h-full object-cover rounded-lg"
+                            controls
+                          />
+                        ) : (
+                          <img
+                            src={item.url}
+                            alt={`Preview ${index + 1}`}
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                        )}
                         <button
                           type="button"
-                          onClick={() => removeImage(index)}
+                          onClick={() => removeMedia(index)}
                           className="absolute top-1 right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white hover:bg-black transition-colors"
                         >
                           <X className="w-4 h-4" />
@@ -440,65 +540,78 @@ export function DailyLife() {
         </div>
       </AnimatedSection>
 
-      {/* 검색 */}
+      {/* 검색 - Collapsible */}
       <AnimatedSection delay={0.15}>
-        <Card className="p-4 mb-4">
-          <div className="space-y-3">
+        <Card className="mb-4">
+          <button
+            onClick={() => setIsSearchOpen(!isSearchOpen)}
+            className="w-full p-4 flex items-center justify-between hover:bg-accent/50 transition-colors rounded-lg"
+          >
             <div className="flex items-center gap-2">
               <Search className="w-4 h-4 text-muted-foreground" />
               <h3 className="text-sm font-semibold">검색</h3>
             </div>
-            <div className="flex gap-2">
-              <Select value={searchType} onValueChange={(value: 'title' | 'tag' | 'date') => setSearchType(value)}>
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-gray-800">
-                  <SelectItem value="title">제목</SelectItem>
-                  <SelectItem value="tag">태그</SelectItem>
-                  <SelectItem value="date">날짜</SelectItem>
-                </SelectContent>
-              </Select>
-              {searchType === 'date' ? (
-                <div className="flex-1 flex flex-col sm:flex-row gap-2">
-                  <div className="flex items-center gap-2 flex-1">
+            {isSearchOpen ? (
+              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            )}
+          </button>
+
+          {isSearchOpen && (
+            <div className="px-4 pb-4 space-y-3">
+              <div className="flex gap-2">
+                <Select value={searchType} onValueChange={(value: 'title' | 'tag' | 'date') => setSearchType(value)}>
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-800">
+                    <SelectItem value="title">제목</SelectItem>
+                    <SelectItem value="tag">태그</SelectItem>
+                    <SelectItem value="date">날짜</SelectItem>
+                  </SelectContent>
+                </Select>
+                {searchType === 'date' ? (
+                  <div className="flex-1 flex flex-col sm:flex-row gap-2">
+                    <div className="flex items-center gap-2 flex-1">
+                      <Input
+                        type="date"
+                        placeholder="시작일"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="flex-1 min-w-0 text-sm"
+                      />
+                      <span className="text-sm text-muted-foreground whitespace-nowrap">~</span>
+                      <Input
+                        type="date"
+                        placeholder="종료일"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="flex-1 min-w-0 text-sm"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative flex-1">
                     <Input
-                      type="date"
-                      placeholder="시작일"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="flex-1 min-w-0 text-sm"
-                    />
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">~</span>
-                    <Input
-                      type="date"
-                      placeholder="종료일"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="flex-1 min-w-0 text-sm"
+                      placeholder={
+                        searchType === 'title' ? '제목 검색...' :
+                        '태그 검색...'
+                      }
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full"
                     />
                   </div>
-                </div>
-              ) : (
-                <div className="relative flex-1">
-                  <Input
-                    placeholder={
-                      searchType === 'title' ? '제목 검색...' :
-                      '태그 검색...'
-                    }
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full"
-                  />
-                </div>
+                )}
+              </div>
+              {(searchTerm || startDate || endDate) && (
+                <p className="text-xs text-muted-foreground">
+                  {filteredEntries.length}개의 결과를 찾았습니다.
+                </p>
               )}
             </div>
-            {(searchTerm || startDate || endDate) && (
-              <p className="text-xs text-muted-foreground">
-                {filteredEntries.length}개의 결과를 찾았습니다.
-              </p>
-            )}
-          </div>
+          )}
         </Card>
       </AnimatedSection>
 
@@ -515,219 +628,419 @@ export function DailyLife() {
           </Card>
         ) : (
           filteredEntries.map((entry, index) => {
-            const moodData = moodIcons[entry.mood];
+            const hasLiked = entry.likes.includes(currentUserId);
+            const visibleComments = showAllComments[entry.id] ? entry.comments : entry.comments.slice(0, 2);
+
+            // 3일 이내 글인지 확인
+            const entryDate = new Date(entry.date);
+            const now = new Date();
+            const diffInDays = Math.floor((now.getTime() - entryDate.getTime()) / (1000 * 60 * 60 * 24));
+            const isNew = diffInDays <= 3;
+
             return (
               <AnimatedSection key={entry.id} delay={index * 0.05}>
-                <Card 
-                className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => setSelectedEntry(entry)}
-              >
-                {/* 이미지 캐러셀 */}
-                {entry.images.length > 0 && (
-                  <div className="relative px-12">
-                    <Carousel className="w-full">
-                      <CarouselContent>
-                        {entry.images.map((img, imgIndex) => (
-                          <CarouselItem key={imgIndex}>
-                            <div className="aspect-video bg-muted">
-                              <img
-                                src={img}
-                                alt={`${entry.title} ${imgIndex + 1}`}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          </CarouselItem>
-                        ))}
-                      </CarouselContent>
-                      <CarouselPrevious className="left-2" />
-                      <CarouselNext className="right-2" />
-                    </Carousel>
-                  </div>
-                )}
-
-                {/* 콘텐츠 */}
-                <div className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-8 h-8 rounded-full ${moodData.bg} flex items-center justify-center flex-shrink-0`}>
-                      <span className="text-sm">{moodData.icon}</span>
+                <Card className="overflow-hidden bg-white border border-gray-200">
+                  {/* Instagram-style Header */}
+                  <div className="p-3 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 p-0.5">
+                      <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                        <span className="text-lg">{entry.userAvatar}</span>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-medium text-sm truncate">{entry.title}</h3>
-                        <Badge variant="outline" className="text-xs px-1.5 py-0.5 ml-2">
-                          {entry.category}
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm">{entry.userName}</p>
+                      <p className="text-xs text-gray-500">{entry.date}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isNew && (
+                        <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4 bg-red-500">
+                          NEW
                         </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                        {entry.content}
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        {entry.category}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <div className="px-4 pb-2">
+                    <h3 className="text-lg font-bold">{entry.title}</h3>
+                  </div>
+
+                  {/* Media Area */}
+                  {entry.media && entry.media.length > 0 && (
+                    <div className="relative">
+                      <Carousel className="w-full">
+                        <CarouselContent>
+                          {entry.media.map((item, mediaIndex) => (
+                            <CarouselItem key={mediaIndex}>
+                              <div className="aspect-square bg-gray-100">
+                                {item.type === 'video' ? (
+                                  <video
+                                    src={item.url}
+                                    className="w-full h-full object-cover"
+                                    controls
+                                    playsInline
+                                  />
+                                ) : (
+                                  <img
+                                    src={item.url}
+                                    alt={`Post ${mediaIndex + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
+                              </div>
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                        {entry.media.length > 1 && (
+                          <>
+                            <CarouselPrevious className="left-2" />
+                            <CarouselNext className="right-2" />
+                          </>
+                        )}
+                      </Carousel>
+                    </div>
+                  )}
+
+                  {/* Content Area */}
+                  <div className="px-4 pt-3">
+
+                    {/* Caption */}
+                    <p className="text-sm text-gray-700 mb-3">{entry.caption}</p>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-4 mb-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleLike(entry.id);
+                        }}
+                        className="hover:opacity-60 transition-opacity"
+                      >
+                        <Heart
+                          className={`w-6 h-6 ${hasLiked ? 'fill-red-500 text-red-500' : 'text-gray-900'}`}
+                        />
+                      </button>
+                      <button
+                        onClick={() => setSelectedEntry(entry)}
+                        className="hover:opacity-60 transition-opacity"
+                      >
+                        <MessageCircle className="w-6 h-6 text-gray-900" />
+                      </button>
+                      <button className="hover:opacity-60 transition-opacity">
+                        <Send className="w-6 h-6 text-gray-900" />
+                      </button>
+                    </div>
+
+                    {/* Like Count */}
+                    {entry.likes.length > 0 && (
+                      <p className="font-semibold text-sm mb-2">
+                        좋아요 {entry.likes.length}개
                       </p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          <span>{entry.date}</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <Heart className={`w-3 h-3 ${entry.liked ? 'fill-red-500 text-red-500' : ''}`} />
-                            <span>{entry.likes}</span>
+                    )}
+
+                    {/* View Comments Link */}
+                    {entry.comments.length > 2 && !showAllComments[entry.id] && (
+                      <button
+                        onClick={() => setShowAllComments({ ...showAllComments, [entry.id]: true })}
+                        className="text-sm text-gray-500 mb-2"
+                      >
+                        댓글 {entry.comments.length}개 모두 보기
+                      </button>
+                    )}
+
+                    {/* Comments Preview */}
+                    {visibleComments.length > 0 && (
+                      <div className="space-y-2 mb-2">
+                        {visibleComments.map((comment) => (
+                          <div key={comment.id} className="flex items-start gap-2">
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 p-0.5 flex-shrink-0">
+                              <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                                <span className="text-[10px]">👤</span>
+                              </div>
+                            </div>
+                            <p className="text-sm flex-1">
+                              <span className="font-semibold mr-2">{comment.userName}</span>
+                              <span className="text-gray-900">{comment.text}</span>
+                            </p>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <MessageCircle className="w-3 h-3" />
-                            <span>{entry.comments.length}</span>
-                          </div>
-                        </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add Comment */}
+                    <div className="border-t pt-3 pb-2">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          placeholder="댓글 달기..."
+                          value={commentText}
+                          onChange={(e) => setCommentText(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              addComment(entry.id);
+                            }
+                          }}
+                          className="border-none focus-visible:ring-0 px-0 text-sm"
+                        />
+                        {commentText && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => addComment(entry.id)}
+                            className="text-blue-500 hover:text-blue-600 font-semibold"
+                          >
+                            게시
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            </AnimatedSection>
-          );
-        })
+                </Card>
+              </AnimatedSection>
+            );
+          })
         )}
       </div>
 
-      {/* 상세보기 Dialog */}
+      {/* 상세보기 Dialog - Instagram Style */}
       {selectedEntry && (
         <Dialog open={!!selectedEntry} onOpenChange={() => setSelectedEntry(null)}>
-          <DialogContent className="sm:max-w-[90vw] mx-4 max-h-[85vh] p-0 overflow-hidden">
+          <DialogContent className="sm:max-w-[90vw] mx-4 max-h-[85vh] p-0 overflow-hidden bg-white">
             <ScrollArea className="max-h-[85vh]">
-              <div className="p-6">
-                {/* 헤더 */}
-                <div className="flex items-start gap-3 mb-4">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+              <div className="p-0">
+                {/* Header */}
+                <div className="p-4 flex items-center gap-3 border-b">
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="h-8 w-8"
                     onClick={() => setSelectedEntry(null)}
                   >
                     <ArrowLeft className="w-4 h-4" />
                   </Button>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={`w-10 h-10 rounded-full ${moodIcons[selectedEntry.mood].bg} flex items-center justify-center`}>
-                        <span className="text-lg">{moodIcons[selectedEntry.mood].icon}</span>
-                      </div>
-                      <div>
-                        <h2 className="font-semibold">{selectedEntry.title}</h2>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
-                          <span>{selectedEntry.date}</span>
-                          <Badge variant="outline" className="text-xs px-1.5 py-0.5">
-                            {selectedEntry.category}
-                          </Badge>
-                        </div>
-                      </div>
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 p-0.5">
+                    <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                      <span className="text-lg">{selectedEntry.userAvatar}</span>
                     </div>
                   </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-sm">{selectedEntry.userName}</p>
+                    <p className="text-xs text-gray-500">{selectedEntry.date}</p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {selectedEntry.category}
+                  </Badge>
                 </div>
 
-                {/* 이미지 */}
-                {selectedEntry.images.length > 0 && (
-                  <div className="mb-4">
+                {/* Title */}
+                <div className="px-4 pt-2">
+                  <h2 className="text-xl font-bold">{selectedEntry.title}</h2>
+                </div>
+
+                {/* Media */}
+                {selectedEntry.media && selectedEntry.media.length > 0 && (
+                  <div className="relative mt-3">
                     <Carousel className="w-full">
                       <CarouselContent>
-                        {selectedEntry.images.map((img, imgIndex) => (
-                          <CarouselItem key={imgIndex}>
-                            <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                              <img
-                                src={img}
-                                alt={`${selectedEntry.title} ${imgIndex + 1}`}
-                                className="w-full h-full object-cover"
-                              />
+                        {selectedEntry.media.map((item, mediaIndex) => (
+                          <CarouselItem key={mediaIndex}>
+                            <div className="aspect-square bg-gray-100">
+                              {item.type === 'video' ? (
+                                <video
+                                  src={item.url}
+                                  className="w-full h-full object-cover"
+                                  controls
+                                  playsInline
+                                />
+                              ) : (
+                                <img
+                                  src={item.url}
+                                  alt={`Post ${mediaIndex + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
                             </div>
                           </CarouselItem>
                         ))}
                       </CarouselContent>
-                      <CarouselPrevious />
-                      <CarouselNext />
+                      {selectedEntry.media.length > 1 && (
+                        <>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </>
+                      )}
                     </Carousel>
                   </div>
                 )}
 
-                {/* 본문 */}
-                <div className="mb-4">
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {selectedEntry.content}
-                  </p>
-                </div>
+                <div className="p-4">
 
-                {/* 태그 */}
-                {selectedEntry.tags.length > 0 && (
-                  <div className="flex gap-2 mb-4 flex-wrap">
-                    {selectedEntry.tags.map((tag, tagIndex) => (
-                      <Badge key={tagIndex} variant="secondary" className="text-xs">
-                        #{tag}
-                      </Badge>
-                    ))}
+                  {/* Caption */}
+                  <p className="text-sm text-gray-700 mb-4">{selectedEntry.caption}</p>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-4 mb-3">
+                    <button
+                      onClick={() => toggleLike(selectedEntry.id)}
+                      className="hover:opacity-60 transition-opacity"
+                    >
+                      <Heart
+                        className={`w-7 h-7 ${selectedEntry.likes.includes(currentUserId) ? 'fill-red-500 text-red-500' : 'text-gray-900'}`}
+                      />
+                    </button>
+                    <button className="hover:opacity-60 transition-opacity">
+                      <MessageCircle className="w-7 h-7 text-gray-900" />
+                    </button>
+                    <button className="hover:opacity-60 transition-opacity">
+                      <Send className="w-7 h-7 text-gray-900" />
+                    </button>
                   </div>
-                )}
 
-                <Separator className="my-4" />
-
-                {/* 좋아요 및 댓글 버튼 */}
-                <div className="flex items-center gap-4 mb-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="flex items-center gap-2"
-                    onClick={() => toggleLike(selectedEntry.id)}
-                  >
-                    <Heart className={`w-4 h-4 ${selectedEntry.liked ? 'fill-red-500 text-red-500' : ''}`} />
-                    <span className="text-sm">{selectedEntry.likes}</span>
-                  </Button>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MessageCircle className="w-4 h-4" />
-                    <span>{selectedEntry.comments.length}개의 댓글</span>
-                  </div>
-                </div>
-
-                <Separator className="my-4" />
-
-                {/* 댓글 목록 */}
-                <div className="space-y-4 mb-4">
-                  <h3 className="font-medium">댓글</h3>
-                  {selectedEntry.comments.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      첫 댓글을 남겨보세요!
+                  {/* Like Count */}
+                  {selectedEntry.likes.length > 0 && (
+                    <p className="font-semibold text-sm mb-3">
+                      좋아요 {selectedEntry.likes.length}개
                     </p>
-                  ) : (
-                    selectedEntry.comments.map((comment) => (
-                      <div key={comment.id} className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm">{comment.avatar}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-sm">{comment.author}</span>
-                            <span className="text-xs text-muted-foreground">{comment.date}</span>
-                          </div>
-                          <p className="text-sm">{comment.content}</p>
-                        </div>
-                      </div>
-                    ))
                   )}
-                </div>
 
-                {/* 댓글 작성 */}
-                <div className="flex items-center gap-2">
-                  <Input
-                    placeholder="댓글을 입력하세요..."
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        addComment(selectedEntry.id);
-                      }
-                    }}
-                  />
-                  <Button 
-                    size="icon"
-                    onClick={() => addComment(selectedEntry.id)}
-                    disabled={!commentText.trim()}
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
+                  <Separator className="my-4" />
+
+                  {/* Comments Section */}
+                  <div className="space-y-4 mb-4">
+                    <h3 className="font-semibold text-sm">댓글</h3>
+                    {selectedEntry.comments.length === 0 ? (
+                      <p className="text-sm text-gray-500 text-center py-4">
+                        첫 댓글을 남겨보세요!
+                      </p>
+                    ) : (
+                      selectedEntry.comments.map((comment) => {
+                        const replyKey = `${selectedEntry.id}-${comment.id}`;
+                        return (
+                          <div key={comment.id} className="space-y-2">
+                            {/* Main Comment */}
+                            <div className="flex items-start gap-3">
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 p-0.5 flex-shrink-0">
+                                <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                                  <span className="text-xs">👤</span>
+                                </div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="bg-gray-50 rounded-2xl px-3 py-2">
+                                  <p className="font-semibold text-sm">{comment.userName}</p>
+                                  <p className="text-sm text-gray-900">{comment.text}</p>
+                                </div>
+                                <div className="flex items-center gap-3 mt-1 px-3">
+                                  <span className="text-xs text-gray-500">{comment.timestamp}</span>
+                                  <button
+                                    onClick={() => setReplyingTo({ entryId: selectedEntry.id, commentId: comment.id })}
+                                    className="text-xs text-gray-500 font-semibold hover:text-gray-700"
+                                  >
+                                    답글 달기
+                                  </button>
+                                  {comment.replies.length > 0 && (
+                                    <button
+                                      onClick={() => setShowReplies({ ...showReplies, [replyKey]: !showReplies[replyKey] })}
+                                      className="text-xs text-gray-500 font-semibold hover:text-gray-700"
+                                    >
+                                      {showReplies[replyKey] ? '답글 숨기기' : `답글 ${comment.replies.length}개 보기`}
+                                    </button>
+                                  )}
+                                </div>
+
+                                {/* Replies */}
+                                {showReplies[replyKey] && comment.replies.length > 0 && (
+                                  <div className="mt-3 space-y-2 pl-4 border-l-2 border-gray-200">
+                                    {comment.replies.map((reply) => (
+                                      <div key={reply.id} className="flex items-start gap-2">
+                                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-emerald-400 p-0.5 flex-shrink-0">
+                                          <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                                            <span className="text-xs">👤</span>
+                                          </div>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                          <div className="bg-gray-50 rounded-2xl px-3 py-2">
+                                            <p className="font-semibold text-xs">{reply.userName}</p>
+                                            <p className="text-xs text-gray-900">{reply.text}</p>
+                                          </div>
+                                          <span className="text-xs text-gray-500 ml-3 mt-1 inline-block">
+                                            {reply.timestamp}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* Reply Input */}
+                                {replyingTo?.entryId === selectedEntry.id && replyingTo?.commentId === comment.id && (
+                                  <div className="mt-2 flex items-center gap-2 pl-4">
+                                    <Input
+                                      placeholder="답글 달기..."
+                                      value={replyText}
+                                      onChange={(e) => setReplyText(e.target.value)}
+                                      onKeyPress={(e) => {
+                                        if (e.key === 'Enter') {
+                                          addReply(selectedEntry.id, comment.id);
+                                        }
+                                      }}
+                                      className="text-sm"
+                                      autoFocus
+                                    />
+                                    <Button
+                                      size="sm"
+                                      onClick={() => addReply(selectedEntry.id, comment.id)}
+                                      disabled={!replyText.trim()}
+                                    >
+                                      <Send className="w-3 h-3" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => {
+                                        setReplyingTo(null);
+                                        setReplyText('');
+                                      }}
+                                    >
+                                      취소
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Add Comment */}
+                  <div className="border-t pt-4">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        placeholder="댓글 달기..."
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            addComment(selectedEntry.id);
+                          }
+                        }}
+                        className="border-none focus-visible:ring-0 px-0"
+                      />
+                      {commentText && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => addComment(selectedEntry.id)}
+                          className="text-blue-500 hover:text-blue-600 font-semibold"
+                        >
+                          게시
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </ScrollArea>

@@ -6,21 +6,30 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Separator } from './ui/separator';
+import { Badge } from './ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { AnimatedSection } from './AnimatedSection';
-import { 
-  User, 
-  Mail, 
-  Bell, 
-  Lock, 
-  Palette, 
-  Database, 
+import { useApp } from '../contexts/AppContext';
+import {
+  User,
+  Mail,
+  Bell,
+  Lock,
+  Palette,
+  Database,
   HelpCircle,
   LogOut,
   Camera,
   ChevronRight,
   Shield,
   Globe,
-  Smartphone
+  Smartphone,
+  Tags,
+  CreditCard as CreditCardIcon,
+  Plus,
+  X,
+  Trash2
 } from 'lucide-react';
 
 interface SettingsProps {
@@ -28,6 +37,23 @@ interface SettingsProps {
 }
 
 export function Settings({ onLogout }: SettingsProps) {
+  const {
+    expenseCategories,
+    incomeCategories,
+    addExpenseCategory,
+    removeExpenseCategory,
+    addIncomeCategory,
+    removeIncomeCategory,
+    updateExpenseCategoryColor,
+    updateIncomeCategoryColor,
+    expensePaymentMethods,
+    incomePaymentMethods,
+    addExpensePaymentMethod,
+    removeExpensePaymentMethod,
+    addIncomePaymentMethod,
+    removeIncomePaymentMethod,
+  } = useApp();
+
   const [profile, setProfile] = useState({
     name: '김가계',
     email: 'budget@example.com',
@@ -49,12 +75,57 @@ export function Settings({ onLogout }: SettingsProps) {
     autoBackup: true
   });
 
+  const [newExpenseCategory, setNewExpenseCategory] = useState('');
+  const [newExpenseCategoryColor, setNewExpenseCategoryColor] = useState('#ef4444');
+  const [newIncomeCategory, setNewIncomeCategory] = useState('');
+  const [newIncomeCategoryColor, setNewIncomeCategoryColor] = useState('#22c55e');
+  const [newExpenseMethod, setNewExpenseMethod] = useState('');
+  const [newIncomeMethod, setNewIncomeMethod] = useState('');
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+
+  const predefinedColors = [
+    '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e',
+    '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1',
+    '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e', '#6b7280'
+  ];
+
   const updateNotification = (key: keyof typeof notifications, value: boolean) => {
     setNotifications({...notifications, [key]: value});
   };
 
   const updatePrivacy = (key: keyof typeof privacy, value: boolean) => {
     setPrivacy({...privacy, [key]: value});
+  };
+
+  const handleAddExpenseCategory = () => {
+    if (newExpenseCategory.trim()) {
+      addExpenseCategory(newExpenseCategory.trim(), newExpenseCategoryColor);
+      setNewExpenseCategory('');
+      setNewExpenseCategoryColor('#ef4444');
+    }
+  };
+
+  const handleAddIncomeCategory = () => {
+    if (newIncomeCategory.trim()) {
+      addIncomeCategory(newIncomeCategory.trim(), newIncomeCategoryColor);
+      setNewIncomeCategory('');
+      setNewIncomeCategoryColor('#22c55e');
+    }
+  };
+
+  const handleAddExpenseMethod = () => {
+    if (newExpenseMethod.trim()) {
+      addExpensePaymentMethod(newExpenseMethod.trim());
+      setNewExpenseMethod('');
+    }
+  };
+
+  const handleAddIncomeMethod = () => {
+    if (newIncomeMethod.trim()) {
+      addIncomePaymentMethod(newIncomeMethod.trim());
+      setNewIncomeMethod('');
+    }
   };
 
   return (
@@ -344,8 +415,342 @@ export function Settings({ onLogout }: SettingsProps) {
         </Card>
       </AnimatedSection>
 
-      {/* 지원 */}
+      {/* 카테고리 관리 */}
       <AnimatedSection delay={0.5}>
+        <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-100 shadow-md">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2 text-orange-900">
+                <Tags className="w-4 h-4 text-orange-600" />
+                카테고리 관리
+              </CardTitle>
+              <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-8">
+                    <Plus className="w-3 h-3 mr-1" />
+                    추가
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[90vw] mx-4">
+                  <DialogHeader>
+                    <DialogTitle>카테고리 추가</DialogTitle>
+                    <DialogDescription>
+                      지출 또는 수입 카테고리를 추가하세요
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label>지출 카테고리 추가</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="카테고리 이름"
+                          value={newExpenseCategory}
+                          onChange={(e) => setNewExpenseCategory(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleAddExpenseCategory();
+                            }
+                          }}
+                          className="flex-1"
+                        />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="icon" className="shrink-0">
+                              <div
+                                className="w-5 h-5 rounded-full border-2 border-gray-200"
+                                style={{ backgroundColor: newExpenseCategoryColor }}
+                              />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64">
+                            <div className="grid grid-cols-6 gap-2">
+                              {predefinedColors.map((color) => (
+                                <button
+                                  key={color}
+                                  className={`w-8 h-8 rounded-full border-2 ${
+                                    newExpenseCategoryColor === color ? 'border-gray-900' : 'border-gray-200'
+                                  }`}
+                                  style={{ backgroundColor: color }}
+                                  onClick={() => setNewExpenseCategoryColor(color)}
+                                />
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        <Button onClick={handleAddExpenseCategory} className="shrink-0">
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                      <Label>수입 카테고리 추가</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="카테고리 이름"
+                          value={newIncomeCategory}
+                          onChange={(e) => setNewIncomeCategory(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleAddIncomeCategory();
+                            }
+                          }}
+                          className="flex-1"
+                        />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="icon" className="shrink-0">
+                              <div
+                                className="w-5 h-5 rounded-full border-2 border-gray-200"
+                                style={{ backgroundColor: newIncomeCategoryColor }}
+                              />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-64">
+                            <div className="grid grid-cols-6 gap-2">
+                              {predefinedColors.map((color) => (
+                                <button
+                                  key={color}
+                                  className={`w-8 h-8 rounded-full border-2 ${
+                                    newIncomeCategoryColor === color ? 'border-gray-900' : 'border-gray-200'
+                                  }`}
+                                  style={{ backgroundColor: color }}
+                                  onClick={() => setNewIncomeCategoryColor(color)}
+                                />
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        <Button onClick={handleAddIncomeCategory} className="shrink-0">
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="font-medium text-sm text-orange-900">지출 카테고리</h3>
+              <div className="flex flex-wrap gap-2">
+                {expenseCategories.map((category) => (
+                  <Badge
+                    key={category.name}
+                    variant="secondary"
+                    className="text-xs px-2 py-1 flex items-center gap-1.5"
+                  >
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          className="w-3 h-3 rounded-full border border-gray-300 hover:scale-110 transition-transform"
+                          style={{ backgroundColor: category.color }}
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64">
+                        <div className="grid grid-cols-6 gap-2">
+                          {predefinedColors.map((color) => (
+                            <button
+                              key={color}
+                              className={`w-8 h-8 rounded-full border-2 ${
+                                category.color === color ? 'border-gray-900' : 'border-gray-200'
+                              }`}
+                              style={{ backgroundColor: color }}
+                              onClick={() => updateExpenseCategoryColor(category.name, color)}
+                            />
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    {category.name}
+                    <button
+                      onClick={() => {
+                        if (confirm(`${category.name} 카테고리를 삭제하시겠습니까?`)) {
+                          removeExpenseCategory(category.name);
+                        }
+                      }}
+                      className="ml-1 hover:text-red-600"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <h3 className="font-medium text-sm text-orange-900">수입 카테고리</h3>
+              <div className="flex flex-wrap gap-2">
+                {incomeCategories.map((category) => (
+                  <Badge
+                    key={category.name}
+                    variant="secondary"
+                    className="text-xs px-2 py-1 flex items-center gap-1.5 bg-green-100"
+                  >
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          className="w-3 h-3 rounded-full border border-gray-300 hover:scale-110 transition-transform"
+                          style={{ backgroundColor: category.color }}
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64">
+                        <div className="grid grid-cols-6 gap-2">
+                          {predefinedColors.map((color) => (
+                            <button
+                              key={color}
+                              className={`w-8 h-8 rounded-full border-2 ${
+                                category.color === color ? 'border-gray-900' : 'border-gray-200'
+                              }`}
+                              style={{ backgroundColor: color }}
+                              onClick={() => updateIncomeCategoryColor(category.name, color)}
+                            />
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    {category.name}
+                    <button
+                      onClick={() => {
+                        if (confirm(`${category.name} 카테고리를 삭제하시겠습니까?`)) {
+                          removeIncomeCategory(category.name);
+                        }
+                      }}
+                      className="ml-1 hover:text-red-600"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </AnimatedSection>
+
+      {/* 지불수단 관리 */}
+      <AnimatedSection delay={0.55}>
+        <Card className="bg-gradient-to-br from-cyan-50 to-sky-50 border-2 border-cyan-100 shadow-md">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2 text-cyan-900">
+                <CreditCardIcon className="w-4 h-4 text-cyan-600" />
+                지불수단 관리
+              </CardTitle>
+              <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-8">
+                    <Plus className="w-3 h-3 mr-1" />
+                    추가
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[90vw] mx-4">
+                  <DialogHeader>
+                    <DialogTitle>지불수단 추가</DialogTitle>
+                    <DialogDescription>
+                      지출 또는 수입 지불수단을 추가하세요
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label>지출 지불수단 추가</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="지불수단 이름"
+                          value={newExpenseMethod}
+                          onChange={(e) => setNewExpenseMethod(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleAddExpenseMethod();
+                            }
+                          }}
+                        />
+                        <Button onClick={handleAddExpenseMethod}>
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                      <Label>수입 지불수단 추가</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="지불수단 이름"
+                          value={newIncomeMethod}
+                          onChange={(e) => setNewIncomeMethod(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleAddIncomeMethod();
+                            }
+                          }}
+                        />
+                        <Button onClick={handleAddIncomeMethod}>
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="font-medium text-sm text-cyan-900">지출 지불수단</h3>
+              <div className="flex flex-wrap gap-2">
+                {expensePaymentMethods.map((method) => (
+                  <Badge
+                    key={method}
+                    variant="secondary"
+                    className="text-xs px-2 py-1 flex items-center gap-1"
+                  >
+                    {method}
+                    <button
+                      onClick={() => {
+                        if (confirm(`${method} 지불수단을 삭제하시겠습니까?`)) {
+                          removeExpensePaymentMethod(method);
+                        }
+                      }}
+                      className="ml-1 hover:text-red-600"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <h3 className="font-medium text-sm text-cyan-900">수입 지불수단</h3>
+              <div className="flex flex-wrap gap-2">
+                {incomePaymentMethods.map((method) => (
+                  <Badge
+                    key={method}
+                    variant="secondary"
+                    className="text-xs px-2 py-1 flex items-center gap-1 bg-green-100"
+                  >
+                    {method}
+                    <button
+                      onClick={() => {
+                        if (confirm(`${method} 지불수단을 삭제하시겠습니까?`)) {
+                          removeIncomePaymentMethod(method);
+                        }
+                      }}
+                      className="ml-1 hover:text-red-600"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </AnimatedSection>
+
+      {/* 지원 */}
+      <AnimatedSection delay={0.6}>
         <Card className="bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-100 shadow-md">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2 text-pink-900">
@@ -395,7 +800,7 @@ export function Settings({ onLogout }: SettingsProps) {
       </AnimatedSection>
 
       {/* 로그아웃 */}
-      <AnimatedSection delay={0.6}>
+      <AnimatedSection delay={0.65}>
         <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 shadow-md">
           <CardContent className="p-4">
             <Button

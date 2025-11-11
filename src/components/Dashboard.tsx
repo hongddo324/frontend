@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
 import { AnimatedSection } from './AnimatedSection';
-import { Bell, TrendingUp, TrendingDown, DollarSign, Calendar, Heart, ChevronRight } from 'lucide-react';
+import { Bell, TrendingUp, TrendingDown, DollarSign, Calendar, Heart, ChevronRight, Briefcase, Wallet, CreditCard } from 'lucide-react';
 
 export function Dashboard() {
+  const [isAssetModalOpen, setIsAssetModalOpen] = useState(false);
   // 한국어 단위로 금액 표시
   function formatKoreanCurrency(amount: number): string {
     const sign = amount < 0 ? '-' : '';
@@ -78,6 +81,44 @@ export function Dashboard() {
     },
   ];
 
+  // 자산 상세 데이터
+  const assetDetails = [
+    {
+      name: '조비에비에션',
+      amount: 80000000,
+      type: '주식',
+      icon: Briefcase,
+      color: 'text-blue-600',
+      bg: 'bg-blue-100',
+    },
+    {
+      name: 'LGCNS',
+      amount: 60000000,
+      type: '주식',
+      icon: Briefcase,
+      color: 'text-green-600',
+      bg: 'bg-green-100',
+    },
+    {
+      name: '현금',
+      amount: 20000000,
+      type: '현금',
+      icon: Wallet,
+      color: 'text-yellow-600',
+      bg: 'bg-yellow-100',
+    },
+    {
+      name: '빚',
+      amount: -20000000,
+      type: '부채',
+      icon: CreditCard,
+      color: 'text-red-600',
+      bg: 'bg-red-100',
+    },
+  ];
+
+  const totalAssets = assetDetails.reduce((sum, asset) => sum + asset.amount, 0);
+
   const quickStats = [
     {
       title: '이달 수입',
@@ -87,6 +128,7 @@ export function Dashboard() {
       icon: TrendingUp,
       color: 'text-green-600',
       bg: 'bg-green-100',
+      clickable: false,
     },
     {
       title: '이달 지출',
@@ -96,6 +138,7 @@ export function Dashboard() {
       icon: TrendingDown,
       color: 'text-red-600',
       bg: 'bg-red-100',
+      clickable: false,
     },
     {
       title: '남은 예산',
@@ -105,15 +148,17 @@ export function Dashboard() {
       icon: DollarSign,
       color: 'text-blue-600',
       bg: 'bg-blue-100',
+      clickable: false,
     },
     {
       title: '현재 자산',
-      value: formatKoreanCurrency(5500000),
+      value: formatKoreanCurrency(totalAssets),
       change: '+5.1%',
       trend: 'up',
       icon: Heart,
       color: 'text-purple-600',
       bg: 'bg-purple-100',
+      clickable: true,
     },
   ];
 
@@ -166,7 +211,11 @@ export function Dashboard() {
           {quickStats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <Card key={index} className="p-3">
+              <Card
+                key={index}
+                className={`p-3 ${stat.clickable ? 'cursor-pointer hover:shadow-lg transition-all' : ''}`}
+                onClick={() => stat.clickable && setIsAssetModalOpen(true)}
+              >
                 <div className="flex items-start justify-between mb-2">
                   <div className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center`}>
                     <Icon className={`h-4 w-4 ${stat.color}`} />
@@ -186,6 +235,54 @@ export function Dashboard() {
           })}
         </div>
       </AnimatedSection>
+
+      {/* 자산 상세 모달 */}
+      <Dialog open={isAssetModalOpen} onOpenChange={setIsAssetModalOpen}>
+        <DialogContent className="sm:max-w-[90vw] mx-4">
+          <DialogHeader>
+            <DialogTitle>자산 상세</DialogTitle>
+            <DialogDescription>
+              현재 보유 중인 자산 내역입니다
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 mt-4">
+            {assetDetails.map((asset, index) => {
+              const Icon = asset.icon;
+              return (
+                <Card key={index} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg ${asset.bg} flex items-center justify-center`}>
+                        <Icon className={`h-5 w-5 ${asset.color}`} />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{asset.name}</p>
+                        <p className="text-xs text-muted-foreground">{asset.type}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`font-semibold ${asset.amount < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                        {formatKoreanCurrency(Math.abs(asset.amount))}
+                      </p>
+                      {asset.amount < 0 && (
+                        <p className="text-xs text-red-500">부채</p>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+            <div className="pt-3 border-t">
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-base">총 자산</p>
+                <p className="font-bold text-lg text-purple-600">
+                  {formatKoreanCurrency(totalAssets)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* 알림 센터 */}
       <AnimatedSection delay={0.15}>

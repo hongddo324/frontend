@@ -79,6 +79,76 @@ export function Schedule() {
         avatar: '',
       },
     },
+    {
+      id: 3,
+      date: '2025-11-15',
+      title: '운동',
+      description: '헬스장 가기',
+      color: 'bg-green-500',
+      likes: 3,
+      liked: false,
+      comments: [],
+      author: {
+        name: '김가계',
+        avatar: '',
+      },
+    },
+    {
+      id: 4,
+      date: '2025-11-18',
+      title: '병원 예약',
+      description: '오후 3시 정기 검진',
+      color: 'bg-red-500',
+      likes: 1,
+      liked: false,
+      comments: [],
+      author: {
+        name: '김가계',
+        avatar: '',
+      },
+    },
+    {
+      id: 5,
+      date: '2025-11-22',
+      title: '프로젝트 마감',
+      description: '최종 제출 및 발표 준비',
+      color: 'bg-purple-500',
+      likes: 8,
+      liked: false,
+      comments: [],
+      author: {
+        name: '김가계',
+        avatar: '',
+      },
+    },
+    {
+      id: 6,
+      date: '2025-11-25',
+      title: '저녁 약속',
+      description: '친구들과 저녁 식사',
+      color: 'bg-orange-500',
+      likes: 6,
+      liked: true,
+      comments: [],
+      author: {
+        name: '김가계',
+        avatar: '',
+      },
+    },
+    {
+      id: 7,
+      date: '2025-11-15',
+      title: '독서',
+      description: '저녁 독서 시간',
+      color: 'bg-yellow-500',
+      likes: 2,
+      liked: false,
+      comments: [],
+      author: {
+        name: '김가계',
+        avatar: '',
+      },
+    },
   ]);
 
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
@@ -93,12 +163,14 @@ export function Schedule() {
   });
 
   const colorOptions = [
-    { value: 'bg-blue-500', label: '파랑' },
-    { value: 'bg-green-500', label: '초록' },
-    { value: 'bg-red-500', label: '빨강' },
-    { value: 'bg-yellow-500', label: '노랑' },
-    { value: 'bg-purple-500', label: '보라' },
-    { value: 'bg-pink-500', label: '분홍' },
+    { value: 'bg-blue-500', label: '파랑', hex: '#3b82f6' },
+    { value: 'bg-green-500', label: '초록', hex: '#22c55e' },
+    { value: 'bg-red-500', label: '빨강', hex: '#ef4444' },
+    { value: 'bg-yellow-500', label: '노랑', hex: '#eab308' },
+    { value: 'bg-purple-500', label: '보라', hex: '#a855f7' },
+    { value: 'bg-pink-500', label: '분홍', hex: '#ec4899' },
+    { value: 'bg-orange-500', label: '주황', hex: '#f97316' },
+    { value: 'bg-gray-500', label: '회색', hex: '#6b7280' },
   ];
 
   const handleAddEvent = (e: React.FormEvent) => {
@@ -230,17 +302,25 @@ export function Schedule() {
     ? events.filter(event => event.date === format(selectedDate, 'yyyy-MM-dd'))
     : [];
 
-  // 달력에 이벤트가 있는 날짜를 표시하기 위한 함수
-  const modifiers = {
-    hasEvent: events.map(event => new Date(event.date)),
+  // 특정 날짜의 이벤트 목록을 가져오는 함수
+  const getEventsForDate = (date: Date) => {
+    const dateString = format(date, 'yyyy-MM-dd');
+    return events.filter(event => event.date === dateString);
   };
 
-  const modifiersStyles = {
-    hasEvent: {
-      backgroundColor: '#3b82f6',
-      color: 'white',
-      borderRadius: '50%',
-    },
+  // 색상 클래스를 실제 색상 코드로 변환하는 함수
+  const getColorFromClass = (colorClass: string): string => {
+    const colorMap: { [key: string]: string } = {
+      'bg-blue-500': '#3b82f6',
+      'bg-green-500': '#22c55e',
+      'bg-red-500': '#ef4444',
+      'bg-yellow-500': '#eab308',
+      'bg-purple-500': '#a855f7',
+      'bg-pink-500': '#ec4899',
+      'bg-orange-500': '#f97316',
+      'bg-gray-500': '#6b7280',
+    };
+    return colorMap[colorClass] || '#3b82f6';
   };
 
   return (
@@ -302,16 +382,21 @@ export function Schedule() {
 
                 <div className="space-y-2">
                   <Label>색상</Label>
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="grid grid-cols-4 gap-2">
                     {colorOptions.map((color) => (
                       <button
                         key={color.value}
                         type="button"
                         onClick={() => setFormData({ ...formData, color: color.value })}
-                        className={`w-8 h-8 rounded-full ${color.value} ${
-                          formData.color === color.value ? 'ring-2 ring-offset-2 ring-primary' : ''
+                        className={`flex flex-col items-center gap-1 p-2 rounded-lg border-2 transition-all ${
+                          formData.color === color.value
+                            ? 'border-primary bg-primary/5 scale-105'
+                            : 'border-transparent hover:border-gray-200 hover:bg-gray-50'
                         }`}
-                      />
+                      >
+                        <div className={`w-6 h-6 rounded-full ${color.value} shadow-sm`} />
+                        <span className="text-xs font-medium">{color.label}</span>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -341,9 +426,28 @@ export function Schedule() {
                 selected={selectedDate}
                 onSelect={setSelectedDate}
                 className="rounded-md border-0 w-full"
-                modifiers={modifiers}
-                modifiersStyles={modifiersStyles}
                 locale={ko}
+                components={{
+                  DayContent: ({ date }) => {
+                    const dayEvents = getEventsForDate(date);
+                    return (
+                      <div className="relative w-full h-full flex flex-col items-center justify-center">
+                        <span>{date.getDate()}</span>
+                        {dayEvents.length > 0 && (
+                          <div className="flex gap-0.5 mt-0.5 absolute bottom-0.5">
+                            {dayEvents.slice(0, 3).map((event, index) => (
+                              <div
+                                key={event.id}
+                                className="w-1 h-1 rounded-full"
+                                style={{ backgroundColor: getColorFromClass(event.color) }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  },
+                }}
               />
             </div>
           </CardContent>
@@ -419,7 +523,10 @@ export function Schedule() {
               <DialogHeader>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
-                    <DialogTitle className="text-xl">{selectedEvent.title}</DialogTitle>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-3 h-3 rounded-full ${selectedEvent.color} shadow-sm`} />
+                      <DialogTitle className="text-xl">{selectedEvent.title}</DialogTitle>
+                    </div>
                     <DialogDescription className="mt-2">
                       {format(new Date(selectedEvent.date), 'yyyy년 M월 d일 (E)', { locale: ko })}
                     </DialogDescription>
@@ -541,10 +648,17 @@ export function Schedule() {
                   <div className="space-y-3 mb-4">
                     {selectedEvent.comments.map((comment) => (
                       <div key={comment.id} className="flex gap-3">
-                        <Avatar className="w-8 h-8">
-                          <AvatarImage src={comment.avatar} />
-                          <AvatarFallback>{comment.author.charAt(0)}</AvatarFallback>
-                        </Avatar>
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 p-0.5 flex-shrink-0">
+                          <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+                            {comment.avatar ? (
+                              <img src={comment.avatar} alt={comment.author} className="w-full h-full rounded-full object-cover" />
+                            ) : (
+                              <Avatar className="w-full h-full">
+                                <AvatarFallback className="text-xs bg-transparent">{comment.author.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                            )}
+                          </div>
+                        </div>
                         <div className="flex-1 min-w-0">
                           <div className="bg-accent rounded-lg p-3">
                             <div className="flex items-center justify-between mb-1">

@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm run build:*)",
       "Skill(debugger)",
-      "Bash(iconv:*)"
+      "Bash(iconv:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

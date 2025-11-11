@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from './ui/utils';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip as RechartsTooltip } from 'recharts';
+import { useApp } from '../contexts/AppContext';
 
 interface Transaction {
   id: number;
@@ -59,6 +60,8 @@ function formatKoreanCurrency(amount: number): string {
 }
 
 export function ExpenseTracker({ onShowAnalysis, selectedDate: controlledDate, onDateChange }: ExpenseTrackerProps) {
+  const { expenseCategories, incomeCategories, expensePaymentMethods, incomePaymentMethods, getCategoryColor } = useApp();
+
   const [transactions, setTransactions] = useState<Transaction[]>([
   { id: 1, description: 'Salary', amount: 2800000, category: '급여', date: '2025-08-01', type: 'income' },
   { id: 2, description: 'Coffee', amount: 6500, category: '식비', date: '2025-08-14', type: 'expense', isAutoClassified: true },
@@ -87,14 +90,14 @@ export function ExpenseTracker({ onShowAnalysis, selectedDate: controlledDate, o
   });
 
   const categories = {
-  expense: ['식비', '교통', '쇼핑', '문화생활', '의료', '공과금', '보험', '기타'],
-  income: ['급여', '부수입', '투자수익', '기타수입']
-};
+    expense: expenseCategories.map(c => c.name),
+    income: incomeCategories.map(c => c.name)
+  };
 
   const paymentMethods = {
-  expense: ['Cash', 'DebitCard', 'CreditCard', 'MobilePay', 'Other'],
-  income: ['BankTransfer', 'Cash', 'Other']
-};
+    expense: expensePaymentMethods,
+    income: incomePaymentMethods
+  };
 
   const autoClassifyTransaction = (description: string): { category: string; isAutoClassified: boolean } => {
     const keywords: Record<string, string[]> = {
@@ -257,6 +260,25 @@ export function ExpenseTracker({ onShowAnalysis, selectedDate: controlledDate, o
     }).length;
   };
 
+  // 날짜별 카테고리 색상 가져오기
+  const getCategoriesForDate = (date: Date) => {
+    const trans = transactions.filter(t => {
+      const transactionDate = new Date(t.date);
+      return transactionDate.getFullYear() === date.getFullYear() &&
+             transactionDate.getMonth() === date.getMonth() &&
+             transactionDate.getDate() === date.getDate();
+    });
+
+    const uniqueCategories = [...new Set(trans.map(t => t.category))];
+    return uniqueCategories.map(cat => {
+      const transaction = trans.find(t => t.category === cat);
+      return {
+        name: cat,
+        color: getCategoryColor(cat, transaction?.type || 'expense')
+      };
+    }).slice(0, 3); // 최대 3개만 표시
+  };
+
 
   return (
     <div className="p-4 space-y-4 overflow-auto h-full">
@@ -309,11 +331,22 @@ export function ExpenseTracker({ onShowAnalysis, selectedDate: controlledDate, o
                     components={{
                       DayContent: ({ date }) => {
                         const count = getTransactionCountByDate(date);
+                        const categories = getCategoriesForDate(date);
+
                         return (
-                          <div className="relative w-full h-full flex items-center justify-center">
+                          <div className="relative w-full h-full flex flex-col items-center justify-center">
+                            <div className="flex items-center gap-0.5 absolute top-0.5 left-1">
+                              {categories.map((cat, idx) => (
+                                <div
+                                  key={idx}
+                                  className="w-1.5 h-1.5 rounded-full"
+                                  style={{ backgroundColor: cat.color }}
+                                />
+                              ))}
+                            </div>
                             <span>{date.getDate()}</span>
                             {count > 0 && (
-                              <span className="absolute bottom-0 right-0 text-[8px] bg-blue-500 text-white rounded-full w-3 h-3 flex items-center justify-center">
+                              <span className="absolute bottom-0 right-0.5 text-[8px] bg-blue-500 text-white rounded-full w-3 h-3 flex items-center justify-center">
                                 {count}
                               </span>
                             )}
@@ -483,11 +516,15 @@ export function ExpenseTracker({ onShowAnalysis, selectedDate: controlledDate, o
                     data={pieChartData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
+                    innerRadius={65}
+                    outerRadius={85}
                     paddingAngle={2}
                     dataKey="value"
-                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    label={({ percent }) => {
+                      return percent > 0.1 ? `${(percent * 100).toFixed(0)}%` : '';
+                    }}
+                    labelLine={false}
+                    style={{ fontSize: '11px' }}
                     onClick={(data: any) => {
                       setSelectedCategory(data.name);
                       setIsCategoryModalOpen(true);
@@ -507,7 +544,7 @@ export function ExpenseTracker({ onShowAnalysis, selectedDate: controlledDate, o
                 </PieChart>
               </ResponsiveContainer>
               {/* 파이 차트 중앙에 총 지출 금액 표시 */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 10 }}>
                 <div className="text-center">
                   <p className="text-xs text-muted-foreground font-medium">총 지출</p>
                   <p className="text-lg font-bold text-red-600">

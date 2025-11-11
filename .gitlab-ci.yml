@@ -1,0 +1,63 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  # Docker 이미지 설정
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  # 이미지 이름 (GitLab Container Registry)
+  IMAGE_NAME: $CI_REGISTRY_IMAGE
+  IMAGE_TAG: $CI_COMMIT_SHORT_SHA
+  # Kubernetes 설정
+  KUBE_NAMESPACE: default
+  APP_NAME: family-frontend
+
+# Docker 이미지 빌드
+build:
+  stage: build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  before_script:
+    # GitLab Container Registry 로그인
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+  script:
+    # Docker 이미지 빌드
+    - docker build -t $IMAGE_NAME:$IMAGE_TAG .
+    - docker tag $IMAGE_NAME:$IMAGE_TAG $IMAGE_NAME:latest
+    # Container Registry에 푸시
+    - docker push $IMAGE_NAME:$IMAGE_TAG
+    - docker push $IMAGE_NAME:latest
+  after_script:
+    - docker logout $CI_REGISTRY
+  only:
+    - main
+    - develop
+  tags:
+    - docker
+
+# Kubernetes에 배포
+deploy:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  before_script:
+    # kubeconfig 설정
+    - mkdir -p ~/.kube
+    - echo "$KUBE_CONFIG" | base64 -d > ~/.kube/config
+    - kubectl version --client
+  script:
+    # Kubernetes에 이미지 업데이트
+    - kubectl set image deployment/$APP_NAME $APP_NAME=$IMAGE_NAME:$IMAGE_TAG -n $KUBE_NAMESPACE
+    # 롤아웃 상태 확인
+    - kubectl rollout status deployment/$APP_NAME -n $KUBE_NAMESPACE
+    # 배포된 Pods 확인
+    - kubectl get pods -n $KUBE_NAMESPACE -l app=$APP_NAME
+  only:
+    - main
+  tags:
+    - kubernetes
+  when: manual
+  environment:
+    name: production
+    url: https://your-domain.com
