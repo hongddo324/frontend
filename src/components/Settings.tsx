@@ -69,10 +69,10 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* 프로필 섹션 */}
       <AnimatedSection delay={0.1}>
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-100 shadow-md">
+        <Card className="dark:bg-card">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-blue-900">
-              <User className="w-4 h-4 text-blue-600" />
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="w-4 h-4" />
               프로필
             </CardTitle>
           </CardHeader>
@@ -141,10 +141,10 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* 알림 설정 */}
       <AnimatedSection delay={0.2}>
-        <Card className="bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-yellow-100 shadow-md">
+        <Card className="dark:bg-card">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-yellow-900">
-              <Bell className="w-4 h-4 text-yellow-600" />
+            <CardTitle className="text-base flex items-center gap-2">
+              <Bell className="w-4 h-4" />
               알림 설정
             </CardTitle>
           </CardHeader>
@@ -227,10 +227,10 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* 보안 및 개인정보 */}
       <AnimatedSection delay={0.3}>
-        <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-100 shadow-md">
+        <Card className="dark:bg-card">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-green-900">
-              <Shield className="w-4 h-4 text-green-600" />
+            <CardTitle className="text-base flex items-center gap-2">
+              <Shield className="w-4 h-4" />
               보안 및 개인정보
             </CardTitle>
           </CardHeader>
@@ -296,10 +296,10 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* 기타 설정 */}
       <AnimatedSection delay={0.4}>
-        <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-2 border-purple-100 shadow-md">
+        <Card className="dark:bg-card">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-purple-900">
-              <Palette className="w-4 h-4 text-purple-600" />
+            <CardTitle className="text-base flex items-center gap-2">
+              <Palette className="w-4 h-4" />
               앱 설정
             </CardTitle>
           </CardHeader>
@@ -346,10 +346,10 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* 지원 */}
       <AnimatedSection delay={0.5}>
-        <Card className="bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-100 shadow-md">
+        <Card className="dark:bg-card">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2 text-pink-900">
-              <HelpCircle className="w-4 h-4 text-pink-600" />
+            <CardTitle className="text-base flex items-center gap-2">
+              <HelpCircle className="w-4 h-4" />
               지원
             </CardTitle>
           </CardHeader>
@@ -396,7 +396,7 @@ export function Settings({ onLogout }: SettingsProps) {
 
       {/* 로그아웃 */}
       <AnimatedSection delay={0.6}>
-        <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 shadow-md">
+        <Card className="dark:bg-card">
           <CardContent className="p-4">
             <Button
               variant="destructive"
