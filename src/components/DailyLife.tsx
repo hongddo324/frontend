@@ -283,7 +283,7 @@ export function DailyLife() {
               일상 기록
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[90vw] mx-4 max-h-[80vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[90vw] max-w-[425px] mx-auto max-h-[80vh] overflow-y-auto bg-white dark:bg-gray-900">
             <DialogHeader>
               <DialogTitle>새 일상 기록</DialogTitle>
               <DialogDescription>오늘의 일상을 기록해보세요.</DialogDescription>
@@ -590,7 +590,7 @@ export function DailyLife() {
       {/* 상세보기 Dialog */}
       {selectedEntry && (
         <Dialog open={!!selectedEntry} onOpenChange={() => setSelectedEntry(null)}>
-          <DialogContent className="sm:max-w-[90vw] mx-4 max-h-[85vh] p-0 overflow-hidden">
+          <DialogContent className="sm:max-w-[90vw] max-w-[425px] mx-auto max-h-[85vh] p-0 overflow-hidden bg-white dark:bg-gray-900">
             <ScrollArea className="max-h-[85vh]">
               <div className="p-6">
                 {/* 헤더 */}

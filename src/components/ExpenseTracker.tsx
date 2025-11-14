@@ -10,7 +10,7 @@ import { Calendar as CalendarComponent } from './ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { AnimatedSection } from './AnimatedSection';
 import { Progress } from './ui/progress';
-import { Plus, Search, TrendingUp, TrendingDown, Calendar, ChevronDown, CreditCard, AlertTriangle, Edit2, Trash2, BarChart3, X } from 'lucide-react';
+import { Plus, Search, TrendingUp, TrendingDown, Calendar, ChevronDown, CreditCard, AlertTriangle, Edit2, Trash2, BarChart3, X, ImagePlus, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { cn } from './ui/utils';
@@ -25,6 +25,8 @@ interface Transaction {
   type: 'income' | 'expense';
   paymentMethod?: string;
   isAutoClassified?: boolean;
+  memo?: string;
+  images?: string[];
 }
 
 const CHART_COLORS = ['#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#f59e0b'];
@@ -86,6 +88,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
@@ -96,6 +99,8 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
     type: 'expense' as 'income' | 'expense',
     date: new Date().toISOString().split('T')[0],
     paymentMethod: '',
+    memo: '',
+    images: [] as string[],
   });
 
   const categories = {
@@ -128,7 +133,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (editingTransaction) {
       // 수정 모드
       setTransactions(transactions.map(t =>
@@ -141,6 +146,8 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
               type: formData.type,
               date: formData.date,
               paymentMethod: formData.paymentMethod,
+              memo: formData.memo,
+              images: formData.images,
             }
           : t
       ));
@@ -159,6 +166,8 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
         date: formData.date,
         type: formData.type,
         paymentMethod: formData.paymentMethod,
+        memo: formData.memo,
+        images: formData.images,
         isAutoClassified
       };
 
@@ -172,6 +181,8 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
       type: 'expense',
       date: new Date().toISOString().split('T')[0],
       paymentMethod: '',
+      memo: '',
+      images: [],
     });
     setIsDialogOpen(false);
   };
@@ -185,6 +196,8 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
       type: transaction.type,
       date: transaction.date,
       paymentMethod: transaction.paymentMethod || '',
+      memo: transaction.memo || '',
+      images: transaction.images || [],
     });
     setIsDialogOpen(true);
   };
@@ -319,6 +332,8 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
             type: 'expense',
             date: new Date().toISOString().split('T')[0],
             paymentMethod: '',
+            memo: '',
+            images: [],
           });
         }
       }}>
@@ -328,7 +343,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
             가계부 작성
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[90vw] mx-4">
+        <DialogContent className="sm:max-w-[90vw] max-w-[425px] mx-auto bg-white dark:bg-gray-900">
           <DialogHeader>
             <DialogTitle>{editingTransaction ? '거래 수정' : '새 거래 추가'}</DialogTitle>
             <DialogDescription>
@@ -355,12 +370,12 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">내용</Label>
+              <Label htmlFor="description">제목</Label>
               <Input
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="거래 내용을 입력하세요"
+                placeholder="거래 제목을 입력하세요"
                 required
               />
             </div>
@@ -418,6 +433,67 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="memo">메모 (선택)</Label>
+              <Input
+                id="memo"
+                value={formData.memo}
+                onChange={(e) => setFormData({...formData, memo: e.target.value})}
+                placeholder="추가 메모를 입력하세요"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>사진 추가 (선택)</Label>
+              <div className="flex items-center gap-2">
+                <label htmlFor="image-upload-expense" className="cursor-pointer">
+                  <div className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-accent transition-colors">
+                    <ImagePlus className="w-4 h-4" />
+                    <span className="text-sm">사진 선택</span>
+                  </div>
+                  <input
+                    id="image-upload-expense"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => {
+                      const files = e.target.files;
+                      if (files) {
+                        const newImages = Array.from(files).map(file => URL.createObjectURL(file));
+                        setFormData({...formData, images: [...formData.images, ...newImages]});
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+                {formData.images.length > 0 && (
+                  <span className="text-sm text-muted-foreground">
+                    {formData.images.length}장 선택됨
+                  </span>
+                )}
+              </div>
+              {formData.images.length > 0 && (
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  {formData.images.map((img, index) => (
+                    <div key={index} className="relative aspect-square">
+                      <img
+                        src={img}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, images: formData.images.filter((_, i) => i !== index)})}
+                        className="absolute top-1 right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white hover:bg-black transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <Button type="submit" className="w-full">
@@ -580,7 +656,10 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
       <div className="space-y-3">
         {filteredTransactions.map((transaction, index) => (
           <AnimatedSection key={transaction.id} delay={0.3 + (index * 0.03)}>
-            <Card className="p-4">
+            <Card
+              className="p-4 cursor-pointer hover:bg-accent transition-colors"
+              onClick={() => setSelectedTransaction(transaction)}
+            >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -596,7 +675,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                       {transaction.category}
                     </Badge>
                     {transaction.paymentMethod && (
-                      <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-blue-50">
+                      <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-blue-50 dark:bg-blue-900">
                         {transaction.paymentMethod}
                       </Badge>
                     )}
@@ -609,7 +688,7 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
                   }`}>
                     {transaction.type === 'income' ? '+' : '-'}₩{transaction.amount.toLocaleString()}
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -633,6 +712,121 @@ export function ExpenseTracker({ onShowAnalysis }: ExpenseTrackerProps) {
           </AnimatedSection>
         ))}
       </div>
+
+      {/* 거래 상세 모달 */}
+      {selectedTransaction && (
+        <Dialog open={!!selectedTransaction} onOpenChange={() => setSelectedTransaction(null)}>
+          <DialogContent className="sm:max-w-[90vw] max-w-[425px] mx-auto bg-white dark:bg-gray-900">
+            <DialogHeader>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setSelectedTransaction(null)}
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+                <DialogTitle>거래 상세</DialogTitle>
+              </div>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">{selectedTransaction.description}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedTransaction.date}</p>
+                </div>
+                <div className={`text-xl font-bold ${
+                  selectedTransaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {selectedTransaction.type === 'income' ? '+' : '-'}₩{selectedTransaction.amount.toLocaleString()}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">유형</p>
+                  <Badge variant="outline">
+                    {selectedTransaction.type === 'income' ? '수입' : '지출'}
+                  </Badge>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">카테고리</p>
+                  <Badge variant="outline">{selectedTransaction.category}</Badge>
+                </div>
+                {selectedTransaction.paymentMethod && (
+                  <div className="space-y-1 col-span-2">
+                    <p className="text-xs text-muted-foreground">지불방법</p>
+                    <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900">
+                      {selectedTransaction.paymentMethod}
+                    </Badge>
+                  </div>
+                )}
+              </div>
+
+              {selectedTransaction.memo && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">메모</p>
+                  <p className="text-sm text-muted-foreground p-3 bg-muted rounded-lg">
+                    {selectedTransaction.memo}
+                  </p>
+                </div>
+              )}
+
+              {selectedTransaction.images && selectedTransaction.images.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">첨부 사진</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {selectedTransaction.images.map((img, index) => (
+                      <div key={index} className="aspect-square">
+                        <img
+                          src={img}
+                          alt={`거래 사진 ${index + 1}`}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedTransaction.isAutoClassified && (
+                <div className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                  <Badge variant="secondary" className="text-xs">자동분류</Badge>
+                  <p className="text-xs text-muted-foreground">
+                    AI가 자동으로 분류한 거래입니다
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setSelectedTransaction(null);
+                    handleEdit(selectedTransaction);
+                  }}
+                >
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  수정
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => {
+                    setSelectedTransaction(null);
+                    handleDelete(selectedTransaction.id);
+                  }}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  삭제
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
