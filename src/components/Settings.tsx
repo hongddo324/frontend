@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -49,6 +49,29 @@ export function Settings({ onLogout }: SettingsProps) {
     autoBackup: true
   });
 
+  // 프로필 사진 변경 시간 확인 (3일간 빛나는 효과)
+  const [hasRecentProfileUpdate, setHasRecentProfileUpdate] = useState(false);
+
+  useEffect(() => {
+    const lastUpdateTime = localStorage.getItem('profilePhotoUpdateTime');
+    if (lastUpdateTime) {
+      const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+      const timeDiff = Date.now() - parseInt(lastUpdateTime);
+      setHasRecentProfileUpdate(timeDiff < threeDaysInMs);
+    }
+  }, []);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const avatarUrl = URL.createObjectURL(file);
+      setProfile({...profile, avatar: avatarUrl});
+      // 프로필 사진 변경 시간 저장
+      localStorage.setItem('profilePhotoUpdateTime', Date.now().toString());
+      setHasRecentProfileUpdate(true);
+    }
+  };
+
   const updateNotification = (key: keyof typeof notifications, value: boolean) => {
     setNotifications({...notifications, [key]: value});
   };
@@ -80,15 +103,31 @@ export function Settings({ onLogout }: SettingsProps) {
             {/* 프로필 사진 */}
             <div className="flex items-center gap-4">
               <div className="relative">
-                <Avatar className="w-20 h-20">
+                {/* 인스타그램 스토리 스타일 빛나는 테두리 */}
+                {hasRecentProfileUpdate && (
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 p-[3px] animate-pulse">
+                    <div className="w-full h-full rounded-full bg-background" />
+                  </div>
+                )}
+                <Avatar className={`w-20 h-20 ${hasRecentProfileUpdate ? 'relative z-10' : ''}`}>
                   <AvatarImage src={profile.avatar} />
                   <AvatarFallback className="text-lg">
                     {profile.name.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <button className="absolute bottom-0 right-0 w-7 h-7 bg-primary rounded-full flex items-center justify-center text-primary-foreground shadow-lg">
+                <label
+                  htmlFor="avatar-upload"
+                  className="absolute bottom-0 right-0 w-7 h-7 bg-primary rounded-full flex items-center justify-center text-primary-foreground shadow-lg cursor-pointer hover:scale-110 transition-transform z-20"
+                >
                   <Camera className="w-4 h-4" />
-                </button>
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                  />
+                </label>
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold">{profile.name}</h3>

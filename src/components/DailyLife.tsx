@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -11,7 +11,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { AnimatedSection } from './AnimatedSection';
 import { Separator } from './ui/separator';
 import { ScrollArea } from './ui/scroll-area';
-import { Plus, Calendar, Heart, ImagePlus, X, MessageCircle, Send, ArrowLeft } from 'lucide-react';
+import { Plus, Calendar, Heart, ImagePlus, X, MessageCircle, Send, ArrowLeft, Trash2 } from 'lucide-react';
 
 interface Comment {
   id: number;
@@ -35,72 +35,12 @@ interface DailyEntry {
   comments: Comment[];
 }
 
-export function DailyLife() {
-  const [entries, setEntries] = useState<DailyEntry[]>([
-    {
-      id: 1,
-      date: '2025-08-14',
-      title: '카페에서의 여유',
-      content: '오랜만에 친구와 카페에서 수다를 떨었다. 집에서 만든 커피도 좋지만, 가끔은 이런 여유도 필요하다는 걸 느꼈다. 새로운 메뉴도 맛있었고 분위기도 좋았다.',
-      mood: 'good',
-      category: '일상',
-      tags: ['카페', '친구', '휴식'],
-      images: [],
-      likes: 12,
-      liked: false,
-      comments: [
-        {
-          id: 1,
-          author: '김민지',
-          content: '좋은 시간 보내셨네요! 저도 가끔 그런 여유가 필요해요 😊',
-          date: '2025-08-14',
-          avatar: '👩'
-        },
-        {
-          id: 2,
-          author: '이준호',
-          content: '어느 카페인가요? 분위기 좋아 보이네요!',
-          date: '2025-08-14',
-          avatar: '👨'
-        }
-      ]
-    },
-    {
-      id: 2,
-      date: '2025-08-13',
-      title: '재택근무 하루',
-      content: '집에서 일하니 출퇴근 스트레스가 없어서 좋다. 점심도 직접 해먹고 집중도도 높았다. 저녁에는 운동도 할 수 있어서 건강한 하루를 보냈다.',
-      mood: 'good',
-      category: '일상',
-      tags: ['재택근무', '건강', '운동'],
-      images: [],
-      likes: 8,
-      liked: true,
-      comments: []
-    },
-    {
-      id: 3,
-      date: '2025-08-12',
-      title: '독서하는 주말',
-      content: '주말 내내 읽고 싶었던 책을 다 읽었다. 자기계발서였는데 재정 관리에 대한 좋은 인사이트를 많이 얻었다. 실천해봐야겠다.',
-      mood: 'good',
-      category: '취미',
-      tags: ['독서', '자기계발', '주말'],
-      images: [],
-      likes: 15,
-      liked: false,
-      comments: [
-        {
-          id: 1,
-          author: '박지영',
-          content: '무슨 책인지 궁금해요! 추천해주세요 📚',
-          date: '2025-08-12',
-          avatar: '👩‍💼'
-        }
-      ]
-    }
-  ]);
+interface DailyLifeProps {
+  entries: DailyEntry[];
+  setEntries: React.Dispatch<React.SetStateAction<DailyEntry[]>>;
+}
 
+export function DailyLife({ entries, setEntries }: DailyLifeProps) {
   const [selectedEntry, setSelectedEntry] = useState<DailyEntry | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -112,6 +52,30 @@ export function DailyLife() {
     tags: '',
     images: [] as string[]
   });
+
+  // 다크모드 감지
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    checkDarkMode();
+
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // 최근 24시간 이내 작성 여부 확인
+  const isRecent = (date: string) => {
+    const entryDate = new Date(date);
+    const now = new Date();
+    const diff = now.getTime() - entryDate.getTime();
+    const hours = diff / (1000 * 60 * 60);
+    return hours < 24;
+  };
 
   const categories = [
     '일상', '취미', '여행', '운동', '음식', '친구', '가족', '자기개발', '기타'
@@ -155,8 +119,11 @@ export function DailyLife() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-      setFormData({...formData, images: [...formData.images, ...newImages]});
+      const newMedia = Array.from(files).map(file => {
+        const url = URL.createObjectURL(file);
+        return url;
+      });
+      setFormData({...formData, images: [...formData.images, ...newMedia]});
     }
   };
 
@@ -219,6 +186,13 @@ export function DailyLife() {
     setCommentText('');
   };
 
+  const deleteEntry = (entryId: number) => {
+    if (confirm('이 일상 기록을 삭제하시겠습니까?')) {
+      setEntries(entries.filter(entry => entry.id !== entryId));
+      setSelectedEntry(null);
+    }
+  };
+
   const moodStats = {
     good: entries.filter(e => e.mood === 'good').length,
     neutral: entries.filter(e => e.mood === 'neutral').length,
@@ -276,17 +250,17 @@ export function DailyLife() {
               </div>
 
               <div className="space-y-2">
-                <Label>사진 추가</Label>
+                <Label>사진/동영상 추가</Label>
                 <div className="flex items-center gap-2">
                   <label htmlFor="image-upload" className="cursor-pointer">
                     <div className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg hover:bg-accent transition-colors">
                       <ImagePlus className="w-4 h-4" />
-                      <span className="text-sm">사진 선택</span>
+                      <span className="text-sm">미디어 선택</span>
                     </div>
                     <input
                       id="image-upload"
                       type="file"
-                      accept="image/*"
+                      accept="image/*,video/*"
                       multiple
                       onChange={handleImageUpload}
                       className="hidden"
@@ -294,29 +268,50 @@ export function DailyLife() {
                   </label>
                   {formData.images.length > 0 && (
                     <span className="text-sm text-muted-foreground">
-                      {formData.images.length}장 선택됨
+                      {formData.images.length}개 선택됨
                     </span>
                   )}
                 </div>
                 {formData.images.length > 0 && (
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    {formData.images.map((img, index) => (
-                      <div key={index} className="relative aspect-square">
-                        <img
-                          src={img}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute top-1 right-1 w-6 h-6 bg-black/70 rounded-full flex items-center justify-center text-white hover:bg-black transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {formData.images.map((media, index) => (
+                        <CarouselItem key={index}>
+                          <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+                            {media.includes('video') || media.endsWith('.mp4') || media.endsWith('.webm') || media.endsWith('.mov') ? (
+                              <video
+                                src={media}
+                                controls
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <img
+                                src={media}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute top-2 right-2 w-8 h-8 bg-black/70 rounded-full flex items-center justify-center text-white hover:bg-black transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                              {index + 1} / {formData.images.length}
+                            </div>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    {formData.images.length > 1 && (
+                      <>
+                        <CarouselPrevious className="left-2" />
+                        <CarouselNext className="right-2" />
+                      </>
+                    )}
+                  </Carousel>
                 )}
               </div>
 
@@ -413,25 +408,43 @@ export function DailyLife() {
                 className="overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => setSelectedEntry(entry)}
               >
-                {/* 이미지 캐러셀 */}
+                {/* 미디어 캐러셀 */}
                 {entry.images.length > 0 && (
-                  <div className="relative px-12">
+                  <div className="relative">
                     <Carousel className="w-full">
                       <CarouselContent>
-                        {entry.images.map((img, imgIndex) => (
+                        {entry.images.map((media, imgIndex) => (
                           <CarouselItem key={imgIndex}>
-                            <div className="aspect-video bg-muted">
-                              <img
-                                src={img}
-                                alt={`${entry.title} ${imgIndex + 1}`}
-                                className="w-full h-full object-cover"
-                              />
+                            <div className="aspect-video bg-muted relative">
+                              {media.includes('video') || media.endsWith('.mp4') || media.endsWith('.webm') || media.endsWith('.mov') ? (
+                                <video
+                                  src={media}
+                                  controls
+                                  className="w-full h-full object-cover"
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              ) : (
+                                <img
+                                  src={media}
+                                  alt={`${entry.title} ${imgIndex + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                              {entry.images.length > 1 && (
+                                <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                                  {imgIndex + 1} / {entry.images.length}
+                                </div>
+                              )}
                             </div>
                           </CarouselItem>
                         ))}
                       </CarouselContent>
-                      <CarouselPrevious className="left-2" />
-                      <CarouselNext className="right-2" />
+                      {entry.images.length > 1 && (
+                        <>
+                          <CarouselPrevious className="left-2" onClick={(e) => e.stopPropagation()} />
+                          <CarouselNext className="right-2" onClick={(e) => e.stopPropagation()} />
+                        </>
+                      )}
                     </Carousel>
                   </div>
                 )}
@@ -444,8 +457,21 @@ export function DailyLife() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-medium text-sm truncate">{entry.title}</h3>
-                        <Badge variant="outline" className="text-xs px-1.5 py-0.5 ml-2">
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                          <h3 className="font-medium text-sm truncate">{entry.title}</h3>
+                          {isRecent(entry.date) && (
+                            <Badge
+                              className={`text-xs px-1.5 py-0.5 ${
+                                isDarkMode
+                                  ? 'bg-green-600 text-white hover:bg-green-700'
+                                  : 'bg-red-600 text-white hover:bg-red-700'
+                              }`}
+                            >
+                              NEW
+                            </Badge>
+                          )}
+                        </div>
+                        <Badge variant="outline" className="text-xs px-1.5 py-0.5 ml-2 flex-shrink-0">
                           {entry.category}
                         </Badge>
                       </div>
@@ -485,9 +511,9 @@ export function DailyLife() {
               <div className="p-6">
                 {/* 헤더 */}
                 <div className="flex items-start gap-3 mb-4">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="h-8 w-8"
                     onClick={() => setSelectedEntry(null)}
                   >
@@ -498,7 +524,7 @@ export function DailyLife() {
                       <div className={`w-10 h-10 rounded-full ${moodIcons[selectedEntry.mood].bg} flex items-center justify-center`}>
                         <span className="text-lg">{moodIcons[selectedEntry.mood].icon}</span>
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <h2 className="font-semibold">{selectedEntry.title}</h2>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Calendar className="w-3 h-3" />
@@ -510,27 +536,52 @@ export function DailyLife() {
                       </div>
                     </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => deleteEntry(selectedEntry.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
 
-                {/* 이미지 */}
+                {/* 미디어 */}
                 {selectedEntry.images.length > 0 && (
                   <div className="mb-4">
                     <Carousel className="w-full">
                       <CarouselContent>
-                        {selectedEntry.images.map((img, imgIndex) => (
+                        {selectedEntry.images.map((media, imgIndex) => (
                           <CarouselItem key={imgIndex}>
-                            <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                              <img
-                                src={img}
-                                alt={`${selectedEntry.title} ${imgIndex + 1}`}
-                                className="w-full h-full object-cover"
-                              />
+                            <div className="aspect-video bg-muted rounded-lg overflow-hidden relative">
+                              {media.includes('video') || media.endsWith('.mp4') || media.endsWith('.webm') || media.endsWith('.mov') ? (
+                                <video
+                                  src={media}
+                                  controls
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <img
+                                  src={media}
+                                  alt={`${selectedEntry.title} ${imgIndex + 1}`}
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                              {selectedEntry.images.length > 1 && (
+                                <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                                  {imgIndex + 1} / {selectedEntry.images.length}
+                                </div>
+                              )}
                             </div>
                           </CarouselItem>
                         ))}
                       </CarouselContent>
-                      <CarouselPrevious />
-                      <CarouselNext />
+                      {selectedEntry.images.length > 1 && (
+                        <>
+                          <CarouselPrevious />
+                          <CarouselNext />
+                        </>
+                      )}
                     </Carousel>
                   </div>
                 )}

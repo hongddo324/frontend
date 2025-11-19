@@ -4,7 +4,33 @@ import { Button } from './ui/button';
 import { AnimatedSection } from './AnimatedSection';
 import { Bell, TrendingUp, TrendingDown, DollarSign, Calendar, Heart, ChevronRight } from 'lucide-react';
 
-export function Dashboard() {
+interface Comment {
+  id: number;
+  author: string;
+  content: string;
+  date: string;
+  avatar: string;
+}
+
+interface DailyEntry {
+  id: number;
+  date: string;
+  title: string;
+  content: string;
+  mood: 'good' | 'neutral' | 'bad';
+  category: string;
+  tags: string[];
+  images: string[];
+  likes: number;
+  liked: boolean;
+  comments: Comment[];
+}
+
+interface DashboardProps {
+  dailyEntries: DailyEntry[];
+}
+
+export function Dashboard({ dailyEntries }: DashboardProps) {
   const notifications = [
     {
       id: 1,
@@ -32,24 +58,23 @@ export function Dashboard() {
     },
   ];
 
-  const recentPosts = [
-    {
-      id: 1,
-      title: '카페에서의 여유',
-      content: '오랜만에 친구와 카페에서 수다를 떨었다. 집에서 만든 커피도 좋지만...',
-      category: '일상',
-      date: '08.14',
-      mood: '😊',
-    },
-    {
-      id: 2,
-      title: '재택근무 하루',
-      content: '집에서 일하니 출퇴근 스트레스가 없어서 좋다. 점심도 직접 해먹고...',
-      category: '일상',
-      date: '08.13',
-      mood: '😊',
-    },
-  ];
+  // 최근 일상 기록 (최대 2개)
+  const recentPosts = dailyEntries.slice(0, 2).map(entry => {
+    const moodIcons: Record<'good' | 'neutral' | 'bad', string> = {
+      good: '😊',
+      neutral: '😐',
+      bad: '😞'
+    };
+
+    return {
+      id: entry.id,
+      title: entry.title,
+      content: entry.content,
+      category: entry.category,
+      date: entry.date.slice(5).replace('-', '.'), // 08-14 -> 08.14
+      mood: moodIcons[entry.mood]
+    };
+  });
 
   const quickStats = [
     {
